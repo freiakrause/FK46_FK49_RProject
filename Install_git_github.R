@@ -31,7 +31,7 @@ gitcreds_set()
 #### Link Rstudio with github ------
 use_github()
 
-
+#xxx
 #### Using GitHub -----
 #When you are done working (pre day or when ever you did important changes) 
 #generate a commit. Give a short not about the content of commit and then commit

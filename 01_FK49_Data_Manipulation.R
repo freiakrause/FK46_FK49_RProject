@@ -21,6 +21,7 @@ data_manipulation_FK49 <- function(d = df,ExpId=NULL) {
   startweight <- d %>% filter(DOW == START.Diet) %>% mutate(Startweight = Weight) %>% select(Animal, Startweight)
   EP_weight <- d %>%filter(DOW == KILL.DATE) %>%mutate(EP_weight = Weight) %>%  select(Animal, EP_weight)
   exigo <- c("ALB", "TP", "GLOB","A.G", "TB", "GGT", "AST", "ALT", "ALP", "AMY","Crea","UA","BUN","GLU","TC","TG")
+  
   # ------ Main Data Manipulation ------
   data <- d %>%
     left_join(startweight, by = "Animal") %>%

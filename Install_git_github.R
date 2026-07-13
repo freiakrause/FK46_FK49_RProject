@@ -23,6 +23,7 @@ create_github_token()
 #token expires in october 2026
 
 #now need to give token to r so that it can talk to github
+install.packages("gitcreds")
 library(gitcreds)
 #enter the token when asked for password or token
 gitcreds_set()

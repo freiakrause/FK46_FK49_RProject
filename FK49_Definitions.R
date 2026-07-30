@@ -55,11 +55,69 @@ create_output_folders <- function(base_path, folders) {
 #Pathways
 home <- normalizePath("~") # bc Windows does not start inuser dir but in user/documents dir
 parent <- dirname(home) 
-targeted_pwd        <-paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/targetedLivMetabolome")
-untargeted_pwd      <-paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/untargetedLivMetabolome")
-BApwd <- paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/BA")
-TEM_out_pwd <- paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM")
-TEM_in_pwd <- paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM/QuPath")
+PATHS <- list(
+  targetedMet = list(
+    output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/targetedLivMetabolome")
+  ),
+  untargeted_Met = list(
+    input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/untargetedLivMetabolome")
+    ),
+  BA = list(
+    input  = "D:/Data/Experiment2/Input",
+    output = "D:/Data/Experiment2/Output"
+  ),
+  microbiome = list(
+    input  = "D:/Data/Experiment2/Input",
+    output = "D:/Data/Experiment2/Output"
+  ),
+  proteomics = list(
+    input  = "D:/Data/Experiment2/Input",
+    output = "D:/Data/Experiment2/Output"
+  ),
+  TEM = list(
+    input  = "D:/Data/Experiment2/Input",
+    output = "D:/Data/Experiment2/Output"
+  ),
+  legendplex = list(
+    input_FK49 = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Legendplex"),
+    input_FK46 = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/FK46_Legendplex"),
+    output = "D:/Data/Experiment2/Output"
+  ),
+  NASH = list(
+    input  = "D:/Data/Experiment2/Input",
+    output = "D:/Data/Experiment2/Output"
+  ),
+  exigo = list(
+    input  = "D:/Data/Experiment2/Input",
+    output = "D:/Data/Experiment2/Output"
+  ),
+  general_data = list(
+    FK49_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis"),
+    FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis"),
+    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/FK46_Organ_GeneralMouseData"),
+    FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks")
+    )
+)
+# targeted_in_pwd 
+# untargeted_pwd      
+# untargeted_in_pwd
+# BApwd <- paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/BA")
+# BA_in_pwd
+# exigo_in_pwd
+# exigo_ou_pwd
+# Legendplex_in_pwd
+# Legendplex_out_pwd
+# NASH_in_pwd
+# NASH_out_pwd
+# microbiome_in_pwd
+# microbiome_out_pwd
+# prot_in_pwd
+# prot_out_pwd
+# general_data_in
+# general_data_out
+# TEM_out_pwd <- paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM")
+# TEM_in_pwd <- paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM/QuPath")
+
 subset_data <- function(data,
                         Sex_filter  = NULL,
                         Diet_filter = NULL,

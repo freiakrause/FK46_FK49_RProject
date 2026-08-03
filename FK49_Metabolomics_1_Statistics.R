@@ -1,8 +1,5 @@
 gc()
 rm(list = ls())
-home <- normalizePath("~") # bc Windows does not start inuser dir but in user/documents dir
-parent <- dirname(home)
-setwd(paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_FK49_RProject"))
 
 library(dplyr)
 library(tidyr)
@@ -15,8 +12,6 @@ library(factoextra)
 library(ggrepel)
 library(emmeans)
 source("FK49_Definitions.R")
-home <- normalizePath("~") # bc Windows does not start inuser dir but in user/documents dir
-parent <- dirname(home) # goves users dir works for me since i aways have the data from work in the onedrive at the same location and only local home dir changes
 ExpId = "FK49"
 
 process_metabolome <- function(df, meta_cols) {

@@ -3,9 +3,7 @@ gc()
 library(tidyr)
 library(dplyr)
 library(stringr)
-library(lubridate)
 library(ggplot2 )
-
 source("FK49_Definitions.R")
 # read raw inputdata and general data manipulation -----
  

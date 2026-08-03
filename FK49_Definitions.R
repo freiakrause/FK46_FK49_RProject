@@ -75,8 +75,8 @@ PATHS <- list(
     output = "D:/Data/Experiment2/Output"
   ),
   TEM = list(
-    input  = "D:/Data/Experiment2/Input",
-    output = "D:/Data/Experiment2/Output"
+    input  = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM/QuPath"),
+    output = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM")
   ),
   legendplex = list(
     input_FK49 = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Legendplex"),

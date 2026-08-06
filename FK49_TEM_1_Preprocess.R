@@ -11,30 +11,30 @@ source("FK49_Definitions.R")
 
 # Load Data and Clean up colums --------------------------------
 data <- read.csv2(file.path(PATHS$TEM$input, "/FK49_TEM_test.csv"),sep=",") %>%
-  filter(!Classification== "Granules",
-          !  Classification == "FUN",
+  filter(!Classification== "Granules",             #Annotations i have made in qupath that are irrelevant
+          !Classification == "FUN",
            !Classification == "Unsure",
             !Classification == "Nucleus") %>%
-  mutate(Classification = gsub("Ring or Donut Mito","Donut",Classification),
+  mutate(Classification = gsub("Ring or Donut Mito","Donut",Classification),    #Make names easier
          Classification = gsub("LostCristMito","LostCristae",Classification),
          Classification = ifelse(Classification == "",Name,Classification),
          Classification = gsub("imae_descriptor","image_descriptor",Classification),
          Classification = gsub("image_dscriptor","image_descriptor",Classification),
          Classification = gsub("Lymphocyte\\?","nonHepatocyte",Classification),
-      Area = as.numeric(gsub(",", ".", Area.µm.2)),
+      Area = as.numeric(gsub(",", ".", Area.µm.2)),                                  #for numeric values . instead of ,
     Perimeter = as.numeric(gsub(",", ".", Perimeter.µm)),
     "Length.µm" = as.numeric(gsub(",", ".", Length.µm)),
     Descriptor = Num.points)%>%
   select(Image, Classification, Area, Perimeter, Length.µm,Descriptor)
 
 # Load Animal Metadata ----------------------------------------------------
-
+#contains real animal numbers, sex, treatment
 animal_metadata<-read.csv2(file.path(PATHS$TEM$input, "/TEM_Animal_Metadata.csv"),sep=";")
 
 
 # Generate Pedigree -------------------------------------------------------
 # to allocate measurements to specific mitochondria in Specific cells in specific images 
-df<-data%>% mutate(Image_ID = as.numeric(factor(Image)))
+df<-data%>% mutate(Image_ID = as.numeric(factor(Image))) # images are enumerated
 
 # Initialize columns
 df$Cell_ID <- NA
@@ -236,19 +236,18 @@ df<-df%>%mutate(Circularity = 4* pi *Area/(Perimeter*Perimeter))
 # Reorder Columns to my liking
 df<-df[,c("Animal","Sex","Treatment","Image_ID","Cell_ID","Mito_ID","Pedigree_ID","Classification","Area","Perimeter","Length.µm","Circularity","Descriptor","Analysis_ID")]
 df<-df%>%mutate(Image_ID = as.factor(Image_ID))
-df_long <- df %>%
-  pivot_longer( cols = c(Area, Perimeter, Length.µm, Circularity),
-    names_to = "Variable",
-    values_to = "Value",
-    values_drop_na = TRUE )
 str(df)
 head(df)
 unique(df$Classification)
 
-
-
 # Sum up data in Dataframes of different levels ----------------------------------------
+#for easy plotting
 ##  Dataframe Mitos ------------------
+Mito_Metadata <- df %>%
+  filter(Classification %in% c("Hepatocyte", "nonHepatocyte")) %>%
+  select( Animal,Image_ID,Cell_ID, Cell_Type = Classification) %>%
+  distinct()
+
 Mito_Dataframe <- df %>%
   filter(!Classification %in% c("Hepatocyte", "nonHepatocyte", "image_descriptor")) %>%
   mutate( Shape = if_else(Classification %in% c("Donut", "Mitochondrium", "LostCristae"),
@@ -258,7 +257,10 @@ Mito_Dataframe <- df %>%
   pivot_wider(id_cols = c(Animal, Sex,Treatment,Image_ID, Cell_ID, Mito_ID, Pedigree_ID,Shape, Area, Perimeter, Circularity, Analysis_ID),
     names_from = Classification,values_from = Length.µm) %>%
   select(-Donut,-Mitochondrium,-LostCristae)%>%
-  ungroup()                           
+  ungroup() 
+
+Mito_Dataframe <-Mito_Dataframe%>%
+  left_join(Mito_Metadata,by = c("Animal", "Image_ID", "Cell_ID") )
 saveRDS(Mito_Dataframe,file.path(PATHS$TEM$output,"CleanData/Mito_Dataframe.rds"))
 write.csv(Mito_Dataframe,file.path(PATHS$TEM$output,"CleanData/Mito_Dataframe.csv"))
 
@@ -266,7 +268,7 @@ write.csv(Mito_Dataframe,file.path(PATHS$TEM$output,"CleanData/Mito_Dataframe.cs
 ##  Dataframe Cells ------------------
 Cell_Metadata <- df %>%
   filter(Classification %in% c("Hepatocyte", "nonHepatocyte", "image_descriptor")) %>%
-  select( Animal,Image_ID,Cell_ID,Cell_Type = Classification, Cell_Area = Area) %>%
+  select( Animal,Image_ID,Cell_ID, Cell_Area = Area) %>% 
   distinct()
 
 Cell_Dataframe <- Mito_Dataframe %>%
@@ -277,6 +279,7 @@ Cell_Dataframe <- Mito_Dataframe %>%
             n_Mito = n(),
             Cell_Type = first(Cell_Type),
             Cell_Area= mean(Cell_Area),
+            Analysis_ID = first(Analysis_ID),
             
     Mito_pro_Area = n_Mito/Cell_Area,
     Mean_Mito_Area = mean(Area, na.rm = TRUE),
@@ -301,7 +304,7 @@ saveRDS(Cell_Dataframe,file.path(PATHS$TEM$output,"CleanData/Cell_Dataframe.rds"
 write.csv(Cell_Dataframe,file.path(PATHS$TEM$output,"CleanData/Cell_Dataframe.csv"))
 
 
-##  Dataframe Iamges ------------------
+##  Dataframe Images ------------------
 Image_Metadata <- df %>%
   filter(Classification == "image_descriptor") %>%
   select( Animal, Image_ID,Descriptor) %>%

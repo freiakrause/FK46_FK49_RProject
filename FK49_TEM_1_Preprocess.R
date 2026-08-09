@@ -25,7 +25,10 @@ data <- read.csv2(file.path(PATHS$TEM$input, "/FK49_TEM_test.csv"),sep=",") %>%
     Perimeter = as.numeric(gsub(",", ".", Perimeter.µm)),
     "Length.µm" = as.numeric(gsub(",", ".", Length.µm)),
     Descriptor = Num.points)%>%
-  select(Image, Classification, Area, Perimeter, Length.µm,Descriptor)
+  select(Image, Classification, Area, Perimeter, Length.µm,Descriptor)#%>%
+ #filter(!str_detect(Image, "^32_")) # Bilder von 32_ sahen immer sehr anders aus als alle anderen tiere. 
+#Weil etwas sehr dichtes, was nicht wie mitochondiren aussahe die aufnahmen dominiert hat. 
+#ein ahnung as es ist. aber vllt besser das tier rauszunemen?
 
 # Load Animal Metadata ----------------------------------------------------
 #contains real animal numbers, sex, treatment
@@ -283,15 +286,10 @@ Cell_Dataframe <- Mito_Dataframe %>%
             
     Mito_pro_Area = n_Mito/Cell_Area,
     Mean_Mito_Area = mean(Area, na.rm = TRUE),
-    SD_Mito_Area = sd(Area, na.rm = TRUE),
     Mean_Perimeter = mean(Perimeter, na.rm = TRUE),
-    SD_Perimeter = sd(Perimeter, na.rm = TRUE),
     Mean_Length = mean(Length, na.rm = TRUE),
-    SD_Length = sd(Length, na.rm = TRUE),
     Mean_Width = mean(Width, na.rm = TRUE),
-    SD_Width = sd(Width, na.rm = TRUE),
     Mean_Circularity = mean(Circularity, na.rm = TRUE),
-    SD_Circularity = sd(Circularity, na.rm = TRUE),
     Total_Mito_Area = sum(Area, na.rm = TRUE),
     relMitoArea =sum(Area, na.rm = TRUE)/Cell_Area,
     Freq_Donut = sum(Shape == "Donut")/sum(Shape %in% c("Donut","LostCristae","Mitochondrium")),
@@ -319,50 +317,31 @@ Image_Dataframe <- Cell_Dataframe %>%
     n_nonHeps= sum (Cell_Type== "nonHepatocyte"),
     
     Mean_Hep_Area = mean(Cell_Area[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Hep_Area = sd(Cell_Area[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    Mean_n_Mito = mean(n_Mito[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_n_Mito = sd(n_Mito[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Mito_Area = mean(Mean_Mito_Area[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Mito_Area = sd(Mean_Mito_Area[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Mito_Length = mean(Mean_Length[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Mito_Length = sd(Mean_Length[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Mito_Width = mean(Mean_Width[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Mito_Width = sd(Mean_Width[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Circularity = mean(Mean_Circularity[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Circularity = sd(Mean_Circularity[Cell_Type== "Hepatocyte"], na.rm = TRUE),
+    Mean_Mito_pro_Area=mean(Mito_pro_Area[Cell_Type== "Hepatocyte"], na.rm = TRUE),
+    Mean_Perimeter = mean(Mean_Perimeter[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_relMitoArea = mean(relMitoArea[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_relMitoArea = sd(relMitoArea[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Freq_Donut = mean(Freq_Donut[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Freq_Donut = sd(Freq_Donut[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Freq_StandardMitochondrium = mean(Freq_StandardMitochondrium[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Freq_StandardMitochondrium = sd(Freq_StandardMitochondrium[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Freq_LostCristae = mean(Freq_LostCristae[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Freq_LostCristae = sd(Freq_LostCristae[Cell_Type== "Hepatocyte"], na.rm = TRUE),
     Mean_Freq_damaged = mean(Freq_damaged[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    SD_Freq_damaged = sd(Freq_damaged[Cell_Type== "Hepatocyte"], na.rm = TRUE),
-    
+
     Mean_nonHep_Area = mean(Cell_Area[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Area = sd(Cell_Area[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_n_Mito = mean(n_Mito[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_n_Mito = sd(n_Mito[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Mito_Area = mean(Mean_Mito_Area[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Mito_Area = sd(Mean_Mito_Area[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Mito_Length = mean(Mean_Length[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Mito_Length = sd(Mean_Length[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Mito_Width = mean(Mean_Width[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Mito_Width = sd(Mean_Width[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Circularity = mean(Mean_Circularity[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Circularity = sd(Mean_Circularity[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
+    Mean_nonHep_Perimeter = mean(Mean_Perimeter[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
+    Mean_nonHep_Mito_pro_Area=mean(Mito_pro_Area[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_relMitoArea = mean(relMitoArea[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_relMitoArea = sd(relMitoArea[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Freq_Donut = mean(Freq_Donut[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Freq_Donut = sd(Freq_Donut[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Freq_StandardMitochondrium = mean(Freq_StandardMitochondrium[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Freq_StandardMitochondrium = sd(Freq_StandardMitochondrium[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Freq_LostCristae = mean(Freq_LostCristae[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Freq_LostCristae = sd(Freq_LostCristae[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     Mean_nonHep_Freq_damaged = mean(Freq_damaged[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
-    SD_nonHep_Freq_damaged = sd(Freq_damaged[Cell_Type== "nonHepatocyte"], na.rm = TRUE),
     .groups = "drop"
   )
 Image_Dataframe <- Image_Dataframe %>%
@@ -378,60 +357,33 @@ Animal_Dataframe <- Image_Dataframe %>%
   summarise(Sex=first(Sex),
             Treatment=first(Treatment),
             n_Images = n(),
-            
-            Mean_Heps_per_Image = mean(n_Heps, na.rm = TRUE),
-            SD_Heps_per_Image = sd(n_Heps, na.rm = TRUE),
-            Mean_Hep_Area = mean(Mean_Hep_Area, na.rm = TRUE),
-            SD_Hep_Area = sd(Mean_Hep_Area, na.rm = TRUE),
-            Mean_Mito_per_Hep = mean(Mean_n_Mito, na.rm = TRUE),    
-            SD_Mito_per_Hep = sd(Mean_n_Mito, na.rm = TRUE),
             Mean_Mito_Area = mean(Mean_Mito_Area, na.rm = TRUE),
-            SD_Mito_Area = sd(Mean_Mito_Area, na.rm = TRUE),
             Mean_Mito_Length = mean(Mean_Mito_Length, na.rm = TRUE),
-            SD_Mito_Length = sd(Mean_Mito_Length, na.rm = TRUE),
             Mean_Mito_Width = mean(Mean_Mito_Width, na.rm = TRUE),
-            SD_Mito_Width = sd(Mean_Mito_Width, na.rm = TRUE),
             Mean_Circularity = mean(Mean_Circularity, na.rm = TRUE),
-            SD_Circularity = sd(Mean_Circularity, na.rm = TRUE),
-            Mean_relMitoArea = mean(Mean_relMitoArea, na.rm = TRUE),
-            SD_relMitoArea = sd(Mean_relMitoArea, na.rm = TRUE),
+            Mean_Perimeter = mean(Mean_Perimeter, na.rm = TRUE),
+            Mean_Mito_pro_Area=mean(Mean_Mito_pro_Area, na.rm = TRUE),
             Mean_Freq_Donut = mean(Mean_Freq_Donut, na.rm = TRUE),
-            SD_Freq_Donut = sd(Mean_Freq_Donut, na.rm = TRUE),
             Mean_Freq_StandardMitochondrium = mean(Mean_Freq_StandardMitochondrium, na.rm = TRUE),
-            SD_Freq_StandardMitochondrium = sd(Mean_Freq_StandardMitochondrium, na.rm = TRUE),
             Mean_Freq_LostCristae = mean(Mean_Freq_LostCristae, na.rm = TRUE),
-            SD_Freq_LostCristae = sd(Mean_Freq_LostCristae, na.rm = TRUE),
             Mean_Freq_damaged = mean(Mean_Freq_damaged, na.rm = TRUE),
-            SD_Freq_damaged = sd(Mean_Freq_damaged, na.rm = TRUE),
-            
-            Mean_nonHeps_per_Image = mean(n_nonHeps, na.rm = TRUE),
-            SD_nonHeps_per_Image = sd(n_nonHeps, na.rm = TRUE),
-            Mean_nonHep_Area = mean(Mean_nonHep_Area, na.rm = TRUE),
-            SD_nonHep_Area = sd(Mean_nonHep_Area, na.rm = TRUE),
-            Mean_Mito_per_nonHep = mean(Mean_nonHep_n_Mito, na.rm = TRUE),
-            SD_Mito_per_nonHep = sd(Mean_nonHep_n_Mito, na.rm = TRUE),
             Mean_nonHep_Mito_Area = mean(Mean_nonHep_Mito_Area, na.rm = TRUE),
-            SD_nonHep_Mito_Area = sd(Mean_nonHep_Mito_Area, na.rm = TRUE),
             Mean_nonHep_Mito_Length = mean(Mean_nonHep_Mito_Length, na.rm = TRUE),
-            SD_nonHep_Mito_Length = sd(Mean_nonHep_Mito_Length, na.rm = TRUE),
             Mean_nonHep_Mito_Width = mean(Mean_nonHep_Mito_Width, na.rm = TRUE),
-            SD_nonHep_Mito_Width = sd(Mean_nonHep_Mito_Width, na.rm = TRUE),
             Mean_nonHep_Circularity = mean(Mean_nonHep_Circularity, na.rm = TRUE),
-            SD_nonHep_Circularity = sd(Mean_nonHep_Circularity, na.rm = TRUE),
+            Mean_nonHep_Mito_pro_Area=mean(Mean_nonHep_Mito_pro_Area, na.rm = TRUE),
+            Mean_nonHep_Perimeter = mean(Mean_nonHep_Perimeter, na.rm = TRUE),
             Mean_nonHep_relMitoArea = mean(Mean_nonHep_relMitoArea, na.rm = TRUE),
-            SD_nonHep_relMitoArea = sd(Mean_nonHep_relMitoArea, na.rm = TRUE),
             Mean_nonHep_Freq_Donut = mean(Mean_nonHep_Freq_Donut, na.rm = TRUE),
-            SD_nonHep_Freq_Donut = sd(Mean_nonHep_Freq_Donut, na.rm = TRUE),
             Mean_nonHep_Freq_StandardMitochondrium = mean(Mean_nonHep_Freq_StandardMitochondrium, na.rm = TRUE),
-            SD_nonHep_Freq_StandardMitochondrium = sd(Mean_nonHep_Freq_StandardMitochondrium, na.rm = TRUE),
             Mean_nonHep_Freq_LostCristae = mean(Mean_nonHep_Freq_LostCristae, na.rm = TRUE),
-            SD_nonHep_Freq_LostCristae = sd(Mean_nonHep_Freq_LostCristae, na.rm = TRUE),
             Mean_nonHep_Freq_damaged = mean(Mean_nonHep_Freq_damaged, na.rm = TRUE),
-            SD_nonHep_Freq_damaged = sd(Mean_nonHep_Freq_damaged, na.rm = TRUE),
             .groups = "drop"
   )
 
 saveRDS(Animal_Dataframe,file.path(PATHS$TEM$output,"CleanData/Animal_Dataframe.rds"))
 write.csv(Animal_Dataframe,file.path(PATHS$TEM$output,"CleanData/Animal_Dataframe.csv"))
 
-
+colSums(is.na(Animal_Dataframe))
+colSums(is.na(Cell_Dataframe))
+colSums(is.na(Mito_Dataframe))

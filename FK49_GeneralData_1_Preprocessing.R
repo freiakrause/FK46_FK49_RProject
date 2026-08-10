@@ -5,11 +5,11 @@ library(dplyr)
 library(stringr)
 library(ggplot2 )
 source("FK49_Definitions.R")
-# read raw inputdata and general data manipulation -----
+# read raw inputdata and general data preprocessing -----
  
-ExpId = "FK49" # at the momemnt only use with FK49
+ExpId = "FK49" # at the moment only use with FK49
                # wanted to make it usable for FK46 and FK49 but they need slightly different data manipulation
-              # not yet nicely implemented
+               # not yet nicely implemented
 
   #sets output directory and loads input. If there is a new (unknown to me) experiment, path needs to be included here and in FK49_Definitions
   
@@ -26,7 +26,7 @@ if (ExpId=="FK49") {
   
   ## Define Startweight, Endpoint Weight, Exigo Parameters ------
   startweight <- d %>% filter(DOW == START.Diet) %>% mutate(Startweight = Weight) %>% select(Animal, Startweight)
-  EP_weight <- d %>%filter(DOW == KILL.DATE) %>%mutate(EP_weight = Weight) %>%  select(Animal, EP_weight)
+  EP_weight   <- d %>% filter(DOW == KILL.DATE) %>% mutate(EP_weight = Weight) %>%  select(Animal, EP_weight)
   exigo <- c("ALB", "TP", "GLOB","A.G", "TB", "GGT", "AST", "ALT", "ALP", "AMY","Crea","UA","BUN","GLU","TC","TG")
   #exigo FK46 has different parameters since i used different assay panel
   
@@ -58,7 +58,7 @@ if (ExpId=="FK49") {
            NASH_I1 = as.numeric(NASH_I1),
            NASH_I2 = as.numeric(NASH_I2)) %>%
     rename( BATCH = Batch ) %>%
-    mutate(Treatment = factor(Treatment,  levels = c("EtOH", "TAM"),  labels = c("ctrl", "TAM"))) %>%
+    mutate(Treatment = factor(Treatment,  levels = c("EtOH", "TAM"),  labels = c("Ctrl", "TAM"))) %>%
     mutate(across(all_of(exigo), as.character)) %>%
     mutate(DFactor = (EXIGOSample + EXIGOBuffer) / EXIGOSample) %>%                                #calculate dilution factor for exigo measurment
     rowwise() %>%
@@ -92,7 +92,7 @@ if (ExpId=="FK49") {
   data <- data %>%left_join(animal_count, by = c("DOW", "Cage"))
   
   rm(animal_count,EP_weight,startweight)
-  ## Prepare Food Food and Water Measruments and add to data frame (only in FK49) ------
+  ## Prepare Food Food and Water Measurements and add to data frame (only in FK49) ------
   if (ExpId=="FK49") {
     ## Prepare Food Measurements ------
   df_food <- data %>%
@@ -192,7 +192,7 @@ if (ExpId=="FK49") {
   ##### Yes to the main weeks there are 10 and 18 animals for Batch 1 and 2.-----
   #But we also see some weighing dates that only happend in Batch 1 or 2
   
-  ## Info about weighing dates individual for BAtch 1 or 2 -----
+  ## Info about weighing dates individual for Batch 1 or 2 -----
   
   # week -0.86 and -0.71 was forgotten to weight in Batch 2 since sheet was hiding in animal room :'D
   # week 1, 1.14, 1.29, 1.57 was measured in Batch 2 but not 1 because animal caretakes got confused and thought they had to weigh food and water and mice everyday every week

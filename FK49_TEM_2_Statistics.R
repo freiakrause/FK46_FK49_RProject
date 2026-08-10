@@ -47,7 +47,7 @@ for(value in Mito_values){
 
 
 Cell_values <- Cell_level %>%
-  select(-Sex, -Treatment, -Animal, -Image_ID, -Cell_ID, -Cell_Type,-Analysis_ID,-Cell_Area,-n_Mito,-Freq_Donut,-Freq_LostCristae,-Total_Mito_Area,
+  select(-Sex, -Treatment, -Animal, -Image_ID, -Cell_ID, -Cell_Type,-Analysis_ID,-Cell_Area,-n_Mito,-Freq_StandardMitochondrium,-Freq_Donut,-Freq_LostCristae,-Total_Mito_Area,
          -starts_with("SD_") ,-starts_with("Mean")) %>% #nimmt die werte raus, die auf mito ebene schongetestet wurden
   colnames()
 

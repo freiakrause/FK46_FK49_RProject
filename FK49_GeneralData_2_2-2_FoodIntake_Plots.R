@@ -1,31 +1,10 @@
 rm(list=ls())
 gc()
-library(knitr)
-library(car)
-library(dplyr)
-library(broom)  # for tidy() function
-library(tidyr)
-library(dplyr)
-library(survival)
-library(lubridate)
 library(tidyverse)
-library(ggsurvfit)
-library(survminer)
-library(patchwork)
-library(superb)
-library(ggbreak)
-library(tibble)
-#library(waffle)
-library(rstatix)
-library(lmerTest)
-library(emmeans)
 library(grid)
-library(ggnewscale)
-library(NADA2)
-library(effsize)
 source("FK49_Definitions.R")
 
-# Hie weiter machen und Plotting sortieren und korrekte statistic hinzufügen
+# Load Data and Statistical Analysis
 d_food <-readRDS(file = file.path(PATHS$FoodIntake$input,"FoodIntake_Cagewise.rds"))
 d_water<-readRDS(file = file.path(PATHS$FoodIntake$input,"WaterIntake_Cagewise.rds"))
 LMM_Food <-read.csv2(file = file.path(PATHS$FoodIntake$output,"Statistics/Food_consumption_LMM_results.csv"))
@@ -34,16 +13,18 @@ Posthoc_Food <-read.csv2(file = file.path(PATHS$FoodIntake$output,"Statistics/Fo
 Posthoc_Water<-read.csv2(file = file.path(PATHS$FoodIntake$output,"Statistics/Water_consumption_LMM_posthoc_by_Block.csv"))
 
 output_pwd <-file.path(PATHS$FoodIntake$output)
-# Food / Water Plotting Data -------
-##Food Barplot summed over all -----
+
+# Plot Food Summary over everything------
+##Sum up Food -----
 d_for_barplot <- d_food %>%
   group_by(Cage, Treatment,Sex) %>%  # group by cage AND treatment
   summarize(mean_Food = mean(Food_consumed, na.rm = TRUE),.groups = "drop")
 
-stats_F <- d_food %>%
-  group_by(Treatment) %>%
+##Mean SD Food for plotting-----
+stats_F <- d_food %>% group_by(Treatment) %>%
   summarise(Mean_F = mean(d_for_barplot$mean_Food, na.rm = TRUE),SD_F = sd(d_for_barplot$mean_Food, na.rm = TRUE),.groups = "drop" )
-#hier später korrekte statistic/ pvalue einführen
+
+## Plot Barplot Summary
 pF<- ggplot(stats_F, aes(x = Treatment, y = Mean_F, fill = Treatment)) +
   geom_bar(stat = "identity", color = "black", alpha = 0.5, width = 0.75, position = "dodge") +
   geom_point(data = d_for_barplot, fill = "lightgrey", color = "black",shape=21,aes(y = mean_Food),   position = position_jitterdodge(0.1, dodge.width = 0.75), alpha = 0.8, size = 5.3, stroke = 1.8) +
@@ -51,8 +32,8 @@ pF<- ggplot(stats_F, aes(x = Treatment, y = Mean_F, fill = Treatment)) +
   scale_fill_manual(values = Treatment_colors[c("Ctrl","TAM")], labels = c("Ctrl", "TAM")) +
   scale_y_continuous(name = paste0("Mean Daily Food Intake per animal [g]"),limits = c(0,20), breaks = seq(0, 20, by = 2)) +
   labs(x = "Treatment") +
-  annotate("text", x = 1.5, y = max(d_for_barplot$mean_Food, na.rm = TRUE) * 1.1, 
-           label = "ns", size = 6, fontface = "italic") +
+  # annotate("text", x = 1.5, y = max(d_for_barplot$mean_Food, na.rm = TRUE) * 1.1, 
+  #          label = "ns", size = 6, fontface = "italic") +
   theme_minimal() +
   theme(
     legend.position = "bottom",
@@ -67,35 +48,45 @@ pF<- ggplot(stats_F, aes(x = Treatment, y = Mean_F, fill = Treatment)) +
     panel.grid = element_blank()) +
   guides( shape = guide_legend(title = "Status", nrow = 1), 
           fill = guide_legend(title = "Treatment", override.aes = list(shape = 21), nrow = 1), color = "none")
+
 ggsave(filename = "FK49_Food Consumption_Summary_ALL.png", plot = pF, path = file.path(output_pwd,"/Plots"), width = 4, height = 11, dpi = 300)
 
+# Plot Food Summary over everything------
+##Sum up Water-----
+d_for_barplot <- d_water %>%
+  group_by(Cage, Treatment,Sex) %>%  # group by cage AND treatment
+  summarize(mean_Water = mean(Water_consumed, na.rm = TRUE),.groups = "drop")
+ 
+##Mean SD Water for plotting-----
+stats_W <- d_water %>% group_by(Treatment) %>%
+  summarise(Mean_W = mean(d_for_barplot$mean_Water, na.rm = TRUE),SD_W = sd(d_for_barplot$mean_Water, na.rm = TRUE),.groups = "drop" )
 
-# ##Water Barplot summed over all -----
-# pW<- ggplot(stats_FW, aes(x = Treatment, y = Mean_W, fill = Treatment)) +
-#   geom_bar(stat = "identity", color = "black", alpha = 0.5, width = 0.75, position = "dodge") +
-#   geom_point(data = d_for_barplot, fill = "lightgrey", color = "black",shape=21,aes(y = mean_Water),   position = position_jitterdodge(0.1, dodge.width = 0.75), alpha = 0.8, size = 5.3, stroke = 1.8) +
-#   geom_errorbar(aes(ymin = Mean_W - SD_W, ymax = Mean_W + SD_W),  position = position_dodge(width = 0.75), width = 0.2) +
-#   scale_fill_manual(values = Treatment_colors[c("Ctrl","TAM")], labels = c("Ctrl", "TAM")) +
-#   scale_y_continuous(name = paste0("Mean Daily Water Intake per animal [g]"), limits = c(0,16), breaks = seq(0, 16, by = 2)) +
-#   labs(x = "Treatment") +
-#   annotate("text", x = 1.5, y = max(d_for_barplot$mean_Food, na.rm = TRUE) * 1.1, label = "ns", size = 6, fontface = "italic") +
-#   theme_minimal() +
-#   theme(
-#     legend.position = "bottom",
-#     axis.line = element_line(color = "black", linewidth = 0.5),
-#     axis.ticks = element_line(color = "black", linewidth = 0.5),
-#     axis.title = element_text(size = 20, face = "bold"),
-#     axis.title.x = element_blank(),
-#     axis.text = element_text(size = 19, face = "bold"),
-#     plot.title = element_blank(),
-#     legend.title = element_text(size = 10),
-#     legend.text = element_text(size = 10),
-#     panel.grid = element_blank()) +
-#   guides( shape = guide_legend(title = "Status", nrow = 1), fill = guide_legend(title = "Treatment", override.aes = list(shape = 21), nrow = 1),            color = "none")
-# ggsave(filename = "FK49_Water Consumption_Summary_ALL.png", plot = pW, path =  file.path(output_pwd,"/Plots"), width = 4, height = 11, dpi = 300)
+##Water Barplot summed over all -----
+pW<- ggplot(stats_W, aes(x = Treatment, y = Mean_W, fill = Treatment)) +
+  geom_bar(stat = "identity", color = "black", alpha = 0.5, width = 0.75, position = "dodge") +
+  geom_point(data = d_for_barplot, fill = "lightgrey", color = "black",shape=21,aes(y = mean_Water),   position = position_jitterdodge(0.1, dodge.width = 0.75), alpha = 0.8, size = 5.3, stroke = 1.8) +
+  geom_errorbar(aes(ymin = Mean_W - SD_W, ymax = Mean_W + SD_W),  position = position_dodge(width = 0.75), width = 0.2) +
+  scale_fill_manual(values = Treatment_colors[c("Ctrl","TAM")], labels = c("Ctrl", "TAM")) +
+  scale_y_continuous(name = paste0("Mean Daily Water Intake per animal [g]"), limits = c(0,16), breaks = seq(0, 16, by = 2)) +
+  labs(x = "Treatment") +
+  #annotate("text", x = 1.5, y = max(d_for_barplot$mean_Water, na.rm = TRUE) * 1.1, label = "ns", size = 6, fontface = "italic") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.line = element_line(color = "black", linewidth = 0.5),
+    axis.ticks = element_line(color = "black", linewidth = 0.5),
+    axis.title = element_text(size = 20, face = "bold"),
+    axis.title.x = element_blank(),
+    axis.text = element_text(size = 19, face = "bold"),
+    plot.title = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    panel.grid = element_blank()) +
+  guides( shape = guide_legend(title = "Status", nrow = 1), fill = guide_legend(title = "Treatment", override.aes = list(shape = 21), nrow = 1),            color = "none")
+ggsave(filename = "FK49_Water Consumption_Summary_ALL.png", plot = pW, path =  file.path(output_pwd,"/Plots"), width = 4, height = 11, dpi = 300)
 
-rm(d_for_barplot,stats_FW,pF,pW) 
-## Plot Food and water consumption per block ----
+# MAIN Figure Plot Food consumption per block MAIN Figure ----
+## Summ up per block -----
 d_for_Block <- d_food %>%
   group_by(Cage, Treatment, Sex, Block, BATCH) %>%  
   summarise(mean_Food = mean(Food_consumed, na.rm = TRUE),
@@ -106,6 +97,7 @@ d_for_Block <- d_food %>%
     Block == "8"  ~ 7.3575,
     Block == "12" ~ 11.3575,
     TRUE ~ NA_real_ ) )
+##Mean SD Food for plotting-----
 
 stats2_F <- d_for_Block %>%
   group_by(Treatment,wks_diet) %>%
@@ -113,15 +105,27 @@ stats2_F <- d_for_Block %>%
             SD_F   = sd(mean_Food, na.rm = TRUE),
          n=n(),
             .groups = "drop")
-### Plotting Food per Block----
-plot <- ggplot(data = stats2_F, aes(x = wks_diet, y = Mean_F, color = Treatment, fill = Treatment)) +
+
+## Prepare p labelling from posthoc test fo plotting -----
+  p_label<-p_label<-case_when(
+    is.na(Posthoc_Food$rounded_p_value) ~ "NA",                     # For NA p-values
+    Posthoc_Food$rounded_p_value < 0.001 ~ "***",                   # p < 0.001 is highly significant
+    Posthoc_Food$rounded_p_value >= 0.001 & Posthoc_Food$rounded_p_value < 0.01 ~ "**", # 0.001 ≤ p < 0.01 is significant
+    Posthoc_Food$rounded_p_value >= 0.01 & Posthoc_Food$rounded_p_value < 0.05 ~ "*",    # 0.01 ≤ p < 0.05 is moderately significant
+    Posthoc_Food$rounded_p_value >= 0.05 ~ "NS",                    # p ≥ 0.05 is not significant
+    TRUE ~ "NA"   )
+  p_x_pos<- as.numeric(as.character(Posthoc_Food$Block))-0.6425
+  p_y_pos <- stats2_F$Mean_F[1:4]+1.3
+  
+## Plot Food per Block over time -----
+  plot <- ggplot(data = stats2_F, aes(x = wks_diet, y = Mean_F, color = Treatment, fill = Treatment)) +
   geom_ribbon(data = stats2_F,  aes(x = wks_diet, ymin = Mean_F,  ymax = Mean_F + SD_F,  fill = Treatment,  group = Treatment), alpha = 0.1, linetype = 0)+
   geom_line(data = stats2_F,   aes(x = wks_diet, y = Mean_F, color = Treatment, group = Treatment), linewidth = 1) +
   geom_point(data = stats2_F,aes(x = wks_diet, y = Mean_F, color = Treatment),  size = 3, stroke = 1.1) +
   geom_text(aes(y = c(Mean_F[1:4]+1.8,Mean_F[1:4]+1.8) , label = n), position = position_dodge(width = 0.4), hjust = 0.5, size = 3, show.legend = FALSE)+
   scale_color_manual(values = Treatment_colors[c("Ctrl","TAM")]) +
   scale_fill_manual (values = Treatment_colors[c("Ctrl","TAM")]) +
-  scale_y_continuous(limits = c(0,20), breaks = seq(0, 20, by = 2)) +
+  scale_y_continuous(limits = c(0,14), breaks = seq(0, 14, by = 2)) +
   scale_x_continuous(name = "Time on CD-HFD [wks]", limits = c(0,12), breaks =  seq(0, 12, by = 1)) +
   ylab("Mean Daily Food Intake per animal [g]") +
   theme_bw() +
@@ -132,7 +136,6 @@ plot <- ggplot(data = stats2_F, aes(x = wks_diet, y = Mean_F, color = Treatment,
         panel.background = element_blank(),
         axis.ticks.length = unit(4, "pt"),
         legend.position = "right")+
-  ggtitle("Food Consumption Batch1+2 all sexes, per cage animal mean measurments per block") +
   guides(x = guide_axis(cap = "upper", minor.ticks = FALSE), y = guide_axis(cap = "upper")) +
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
@@ -140,24 +143,50 @@ plot <- ggplot(data = stats2_F, aes(x = wks_diet, y = Mean_F, color = Treatment,
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank(),
-        axis.ticks.length = unit(4, "pt"))
-# +
-#   annotate("text", x = as.numeric(as.character(pwc_df_rounded_F$Block))-0.6425,
-#            y = stats2_FW$Mean_F[1:4]+1.3,   label = pwc_df_rounded_F$significance,
-#            size = 2.5, color = "black",    fontface = "italic") +
+        axis.ticks.length = unit(4, "pt"))+
+   annotate("text", x = p_x_pos,  y = p_y_pos,   label = p_label, size = 2.5, color = "black",    fontface = "italic")# +
 #   annotate("text", x=0.3, y = 4,   label = anova_label_F,     size = 2,   hjust = 0,    color = "black",   fontface = "italic") +
 #   annotate("text", x=0.3, y = 2.8, label = posthoc_label_F,   size = 2,   hjust = 0,    color = "black",   fontface = "italic")
 
-# Saving Plot ---
-ggsave(filename = "FK49_Food_Consumption_Summary_Block.png", plot = plot,  path = file.path(output_pwd,"/Plots"), width = 9, height = 6,dpi = 300)
 
-rm(emm_F,model_F,pwc_df_F,pwc_df_rounded_F,pwc_F,anova_table_F,anova_label_F,posthoc_label_F)
+ggsave(filename = "FK49_Food_Consumption_Summary_Block.png", plot = plot,  path = file.path(output_pwd,"/Plots"), width = 9, height = 3,dpi = 300)
+
 
 ### Plotting Water per Block ----
-plot <- ggplot(data = stats2_FW, aes(x = wks_diet, y = Mean_W, color = Treatment, fill = Treatment)) +
-  geom_ribbon(data = stats2_FW,  aes(x = wks_diet, ymin = Mean_W,  ymax = Mean_W + SD_W,  fill = Treatment,  group = Treatment), alpha = 0.1, linetype = 0)+
-  geom_line(data = stats2_FW,   aes(x = wks_diet, y = Mean_W, color = Treatment, group = Treatment), linewidth = 1) +
-  geom_point(data = stats2_FW,aes(x = wks_diet, y = Mean_W, color = Treatment),  size = 3, stroke = 1.1) +
+d_for_Block <- d_water %>%
+  group_by(Cage, Treatment, Sex, Block, BATCH) %>%  
+  summarise(mean_Water = mean(Water_consumed, na.rm = TRUE),
+            n = n(),  .groups = "drop") %>%
+  mutate( wks_diet = case_when(
+    Block == "1"  ~ 0.3575,
+    Block == "4"  ~ 3.3575,
+    Block == "8"  ~ 7.3575,
+    Block == "12" ~ 11.3575,
+    TRUE ~ NA_real_ ) )
+stats2_W <- d_for_Block %>%
+group_by(Treatment,wks_diet) %>%
+  summarise(Mean_W = mean(mean_Water, na.rm = TRUE),
+            SD_W   = sd(mean_Water, na.rm = TRUE),
+            n=n(),
+            .groups = "drop")
+
+
+## Prepare p labelling from posthoc test fo plotting -----
+p_label<-case_when(
+         is.na(Posthoc_Water$rounded_p_value) ~ "NA",                     # For NA p-values
+         Posthoc_Water$rounded_p_value < 0.001 ~ "***",                   # p < 0.001 is highly significant
+         Posthoc_Water$rounded_p_value >= 0.001 & Posthoc_Water$rounded_p_value < 0.01 ~ "**", # 0.001 ≤ p < 0.01 is significant
+         Posthoc_Water$rounded_p_value >= 0.01 & Posthoc_Water$rounded_p_value < 0.05 ~ "*",    # 0.01 ≤ p < 0.05 is moderately significant
+         Posthoc_Water$rounded_p_value >= 0.05 ~ "NS",                    # p ≥ 0.05 is not significant
+         TRUE ~ "NA"   )
+p_x_pos<- as.numeric(as.character(Posthoc_Water$Block))-0.6425
+p_y_pos <- stats2_W$Mean_W[1:4]+2
+## Plot Water per Block over time -----
+
+plot <- ggplot(data = stats2_W, aes(x = wks_diet, y = Mean_W, color = Treatment, fill = Treatment)) +
+  geom_ribbon(data = stats2_W,  aes(x = wks_diet, ymin = Mean_W,  ymax = Mean_W + SD_W,  fill = Treatment,  group = Treatment), alpha = 0.1, linetype = 0)+
+  geom_line(data = stats2_W,   aes(x = wks_diet, y = Mean_W, color = Treatment, group = Treatment), linewidth = 1) +
+  geom_point(data = stats2_W,aes(x = wks_diet, y = Mean_W, color = Treatment),  size = 3, stroke = 1.1) +
   geom_text(aes(y = c(Mean_W[1:4]+0.75,Mean_W[1:4]+0.75) , label = n), position = position_dodge(width = 0.4), hjust = 0.5, size = 3, show.legend = FALSE)+
   scale_color_manual(values = Treatment_colors[c("Ctrl","TAM")]) +
   scale_fill_manual(values = Treatment_colors[c("Ctrl","TAM")]) +
@@ -172,7 +201,6 @@ plot <- ggplot(data = stats2_FW, aes(x = wks_diet, y = Mean_W, color = Treatment
         panel.background = element_blank(),
         axis.ticks.length = unit(4, "pt"),
         legend.position = "right")+
-  ggtitle("Water Consumption Batch1+2 all sexes, per cage animal mean measurments per block") +
   guides(x = guide_axis(cap = "upper", minor.ticks = FALSE), y = guide_axis(cap = "upper")) +
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
@@ -181,17 +209,16 @@ plot <- ggplot(data = stats2_FW, aes(x = wks_diet, y = Mean_W, color = Treatment
         panel.border = element_blank(),
         panel.background = element_blank(),
         axis.ticks.length = unit(4, "pt"))+
-  annotate("text", x = as.numeric(as.character(pwc_df_rounded_W$Block))-0.6425,
-           y = stats2_FW$Mean_W[1:4]+0.5,   label = pwc_df_rounded_W$significance,
-           size = 2.5, color = "black",    fontface = "italic") +
-  annotate("text", x=0.3, y = 4,   label = anova_label_W,     size = 2,   hjust = 0,    color = "black",   fontface = "italic") +
-  annotate("text", x=0.3, y = 2.8, label = posthoc_label_W,   size = 2,   hjust = 0,    color = "black",   fontface = "italic")
+  annotate("text", x = p_x_pos,
+           y = p_y_pos,   label = p_label,
+           size = 2.5, color = "black",    fontface = "italic")
 
 ggsave(filename = "FK49_Water_Consumption_Summary_Block.png", plot = plot,  path =  file.path(output_pwd,"/Plots"), width = 9, height = 6,dpi = 300)
 
-rm(emm_W,model_W,pwc_df_W,pwc_df_rounded_W,pwc_W,anova_table_W,anova_label_W,posthoc_label_W)
-rm(d_for_Block,stats2_FW)
-
+rm(list=ls())
+gc()
+# I dont use this funciton becaus it is not interesting to plot all single blocks.
+# 
 #Function for Food Curves ----------------------------------------------
 # do_food_curve <- function(inputdata, value, value_label = NULL, unit = "g",
 #                           batch = "ALL", sex = "both",Block, N, path_images, 

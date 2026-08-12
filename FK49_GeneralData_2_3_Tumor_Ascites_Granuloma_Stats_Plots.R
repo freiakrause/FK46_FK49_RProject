@@ -7,20 +7,20 @@ library(ggplot2)
 library(rlang)
 source("FK49_Definitions.R")
 
-# hier morgen weitermachen, code schick und kommentare. und statistik in methods. dann fine
 output_pwd <-file.path(PATHS$TAG$output)
 load(file.path(PATHS$TAG$input,"FK49_Data_prepared.Rda"))
-exigo <- c("ALB", "TP", "GLOB","A.G", "TB", "GGT", "AST", "ALT", "ALP", "AMY","Crea","UA","BUN","GLU","TC","TG")
+# do waffle works nicely bc I know that i have 28 animal, 14 in TAM and 14 in Ctrl, number of tiles per group is adjusted to that. 
+# If there are different numbers of animals per group, numbers need to be adjusted in tile positions
 
-do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, path = output_pwd,Abb=NULL,nice_name) {
+do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, path = output_pwd,short=NULL,nice_name) {
   
   if(sex_to_use == "both"){
-    sex_to_filter = c("female","male")
+    sex_to_filter = c("female","male")       #filter for sex if only one should be shown
   }else{sex_to_filter = sex_to_use}
   
-  variable <- rlang::as_string(rlang::ensym(variable))
-  yes_lab <- paste0(Abb)
-  no_lab  <- paste0("no",Abb)
+  variable <- as.character(variable)
+  yes_lab <- paste0(short)
+  no_lab  <- paste0("no",short)
   
   d <- data %>%
     select(Animal,Sex, Treatment,all_of(variable)) %>%
@@ -30,42 +30,46 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
     summarise(n = n()) %>%
     ungroup() %>%
     group_by(Treatment) %>%
-    summarise(  !!yes_lab := sum(.data[[variable]] == 1),
+    summarise(  !!yes_lab := sum(.data[[variable]] == 1), # mit !! da das heißt nimmt string der in yes lab gespeicht ist, nicht wörtlich "yes_lab"
                 !!no_lab  := sum(.data[[variable]] == 0),    .groups = "drop") %>%
     pivot_longer(!Treatment, names_to = "Category", values_to = "Count")
   
-  if(sex_to_use != "both"){
-    tiles_per_block_ctrl = 5} else{tiles_per_block_ctrl= max(d$Count)}
   
   # Build waffle blocks
+  if(sex_to_use != "both"){
+  tiles_per_block_ctrl = 5  # if only one sex need lesser blocks
+  } else{tiles_per_block_ctrl= max(d$Count)} # ctrl comes first in plot, is going to fill up until max value
+
   
   ctrl_blocks <- d %>%
     filter(Treatment == "Ctrl") %>%
     mutate(value = Count, fill_type = "Ctrl")
   
   dummy_ctrl <- ctrl_blocks %>%
-    mutate(value = pmax(tiles_per_block_ctrl - value, 0),   fill_type = "dummy")
+    mutate(value = pmax(tiles_per_block_ctrl - value, 0),   fill_type = "dummy") # dummy is here to fill ctrl side out to may d$count value
+  
+  if(sex_to_use != "both"){
+    tiles_per_block_tam = 8
+  }else{tiles_per_block_tam = 14} # tam can max have 14 tiles
   
   tam_blocks <- d %>%
     filter(Treatment == "TAM") %>%
     mutate(value = Count, fill_type = "TAM")
-  
-  if(sex_to_use != "both"){
-    tiles_per_block_tam = 8
-  }else{tiles_per_block_tam = 14}
+ 
   
   dummy_tam <- tam_blocks %>%
     mutate(value = pmax(tiles_per_block_tam - value, 0),   fill_type = "dummy")
+  
   category_order <-order
   
-  waffle_data <- bind_rows(ctrl_blocks, dummy_ctrl, tam_blocks,dummy_tam) %>%
+  waffle_data <- bind_rows(ctrl_blocks, dummy_ctrl, tam_blocks,dummy_tam) %>% # bins in the order of wanted appearance of blocks
     mutate(Category=factor(Category, levels = category_order))%>%
     uncount(value) %>%
     mutate(fill_type = factor(fill_type, levels = c("Ctrl", "TAM", "dummy")))
   
   waffle_data$Category<-droplevels(waffle_data$Category)
   
-  # Create tile positions without waffle package
+  # Create Tile positions for one row per treatment
   
   # waffle_data <- waffle_data %>%
   #   group_by(Treatment, Category) %>%
@@ -77,33 +81,22 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
   #                                        tiles_per_block_ctrl,
   #                                        tiles_per_block_tam))) %>%
   #   ungroup() %>%
-  #   mutate(
-  #     x = if_else(
-  #       Treatment == "TAM",
-  #       x + tiles_per_block_ctrl,
-  #       x
-  #     )
-  #   )
+  #   mutate(x = if_else( Treatment == "TAM", x + tiles_per_block_ctrl, x ))
  waffle_data <- waffle_data %>%
     group_by(Treatment, Category) %>%
     mutate(tile_id = row_number(),
-           x = ((tile_id - 1) %% 7) + 1,
-           y = ceiling(tile_id / 7)) %>%
+           x = ((tile_id - 1) %% 7) + 1, #%% gibt ganz zahligen rest der division, 2%%7 2 da 2 nicht durch 7 teilbar.Bis 7 kommt immer die zahl raus, die getilet werden soll
+           y = ceiling(tile_id / 7)) %>% # if there are more than 7 it will get y biggger 1 so be in the next row
     ungroup() %>%
-    mutate(
-      x = if_else(
-        Treatment == "TAM",
-        x + 7,
-        x
-      )
-    )
-  # Fisher test table
+    mutate( x = if_else(Treatment == "TAM",x + 7, x ))
+ 
+# Fisher test table -----
  fishers <- d %>%
    filter(Category %in% params) %>%
    select(Category, Treatment, Count) %>%
    pivot_wider(names_from = Treatment, values_from = Count)
  
- fish_matrix <- as.matrix(fishers[, c("Ctrl", "TAM")])
+ fish_matrix <- as.matrix(fishers[, c("Ctrl", "TAM")]) # remove dummies!
  fisher_res <- fisher.test(fish_matrix)
  interpretation <- if (fisher_res$p.value < 0.05) {
                    paste0("Treatment has an effect on ", nice_name, " outcome.")
@@ -148,24 +141,17 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
    )
  )
  
- write.csv2(
-   fisher_results,
-   file.path(path, paste0("FK46_", nice_name, "_", sex_to_use, "_Fisher.csv")),
-   row.names = FALSE
- )
+ write.csv2( fisher_results, file.path(path, paste0("FK46_", nice_name, "_", sex_to_use, "_Fisher.csv")),  
+             row.names = FALSE)
  
- write.csv2(
-   fisher_results,
-   file.path(path, paste0("FK46_", nice_name, "_", sex_to_use, "_Fisher.csv")),
-   row.names = FALSE
- )
+ write.csv2( fisher_results, file.path(path, paste0("FK46_", nice_name, "_", sex_to_use, "_Fisher.csv")),
+   row.names = FALSE)
   # Waffle plot
-  
   plot <- ggplot(waffle_data, aes(x = x, y = y, fill = fill_type)) +
     geom_tile(color = "white", linewidth = 0.8, width = 1, height = 1) +
     scale_fill_manual(values = c(Treatment_colors[c("Ctrl","TAM")], "dummy" = "white"),
-                      labels = c("Ctrl"="Control","TAM"="TAM","dummy"=""),
-                      name="Treatment") +
+                      labels = c("Ctrl"="Ctrl","TAM"="TAM","dummy"=""),
+                      name= "Treatment") +
     scale_x_continuous(breaks = c(3.5, 10.5),labels = c("Ctrl", "TAM")) +
     scale_y_continuous(breaks = NULL, labels = NULL ) +
     coord_equal() +
@@ -196,9 +182,9 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
   
   filename2 <- paste0("FK46_", nice_name, "_",sex_to_use,".png")
   
-  if(sex_to_use != "both"){
-    w = 5
-    h = 2
+  if(sex_to_use != "both"){  
+    w = 3 
+    h = 1
   } else{
     w = 6
     h = 3}
@@ -216,16 +202,14 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
 
 
 do_waffle(data = data,variable = "Tumor.no.yes",    
-           Abb  = "T", sex_to_use="both", 
+           short  = "T", sex_to_use="both", 
            params = c("T", "noT"), order = c( "T","noT"), nice_name= "Tumor ")
 
-
-
 do_waffle(data = data,variable = "Ascites.no.yes",    
-          Abb  = "A", sex_to_use="both", 
+          short  = "A", sex_to_use="both", 
           params = c("A", "noA"), order = c( "A","noA"), nice_name= "Ascites ")
 
 do_waffle(data = data,variable = "Granuloma.no.yes",    
-          Abb  = "G", sex_to_use="both", 
+          short  = "G", sex_to_use="both", 
           params = c("G", "noG"), order = c( "noG","G"), nice_name= "Granuloma ")
 

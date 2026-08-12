@@ -1,6 +1,8 @@
 #FK49_Color definitions
 Sex_colors <- c("male"   = "#A2C2E5",
                 "female" = "#F5A9B8")
+Sex_shape <- c("male"   = 22,
+                "female" = 25)
 
 Treatment_colors <- c("none" = "black",
                       "Ctrl" = "#4D4D4DBF", # If etoh is replaced by Ctrl, which is the goal
@@ -103,6 +105,10 @@ PATHS <- list(
   ),
  TAG = list(
    output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Tumor_Ascites_Granuloma"),
+   input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
+ ),
+ Organs = list(
+   output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Weight_Organs"),
    input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
  )
 )

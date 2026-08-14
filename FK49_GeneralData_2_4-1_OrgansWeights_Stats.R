@@ -1,27 +1,9 @@
 rm(list=ls())
 gc()
-library(knitr)
-library(car)
-library(dplyr)
-library(broom)  # for tidy() function
-library(tidyr)
-library(dplyr)
-library(survival)
-library(lubridate)
+
 library(tidyverse)
-library(ggsurvfit)
-library(survminer)
-library(patchwork)
-library(superb)
-library(ggbreak)
-library(tibble)
-library(rstatix)
 library(lmerTest)
 library(emmeans)
-library(grid)
-library(ggnewscale)
-library(NADA2)
-library(effsize)
 source("FK49_Definitions.R")
 # Read Raw Inputdata after general Data manipulation ------------------------------------------------------
 output_pwd <- file.path(PATHS$Organs$output)
@@ -34,7 +16,7 @@ analyze_organ_weight <- function(inputdata, value) {
   d <- inputdata %>%filter(complete.cases(.data[[value]])) %>%
     mutate( Sex = factor(Sex),Treatment = factor(Treatment),BATCH = factor(BATCH))
   d[[value]] <- as.numeric(d[[value]])
-  
+  summary_stats <- d %>%group_by(Treatment)%>%summarize(Mean=mean(.data[[value]]),SD=sd(.data[[value]]),n=n())
 ## Linear model -----
   formula <- as.formula(paste(value, "~ Treatment * Sex + BATCH")) # Is there T effect, is there sex efect, isthere tretment and sex interaction, is there batch effect
   model <- lm(formula, data = d)
@@ -50,6 +32,7 @@ analyze_organ_weight <- function(inputdata, value) {
   contrasts <- contrast(emm,method = "pairwise",adjust = "none")%>%as.data.frame()
   #
   list(
+    summary_stats=summary_stats,
     model = model,
     anova = anova_table,
     contrasts = contrasts,
@@ -74,6 +57,7 @@ names(rel_results) <- rel_organ_variables
 absolute_stats <- map2_dfr( absolute_results, names(absolute_results),
                             ~ tibble(Variable = .y,
                                      #model = .x$model,
+                                     summary_stats = .x$summary_stats,
                                      anova = .x$anova_table,
                                      contrasts = .x$contrasts,
                                      p_Treatment = .x$p_treatment,
@@ -122,6 +106,7 @@ absolute_stats <- map2_dfr( absolute_results, names(absolute_results),
 rel_stats <- map2_dfr(rel_results,names(rel_results),
   ~ tibble(
     Variable = .y,
+    summary_stats =.x$summary_stats,
     #model = .x$model,
     anova = .x$anova_table,
     contrasts = .x$contrasts,
@@ -179,7 +164,7 @@ rel_stats <- map2_dfr(rel_results,names(rel_results),
 
 organ_stats <- bind_rows(absolute_stats,rel_stats)
 organ_stats <- organ_stats %>%
-  select(Variable,Type,p_Treatment,p_Treatment_adj,Interpretation_Treatment,
+  select(Variable,Type,summary_stats,p_Treatment,p_Treatment_adj,Interpretation_Treatment,
         p_Sex,p_Sex_adj,Interpretation_Sex, p_Interaction,p_Interaction_adj,Interpretation_Interaction,
         p_Batch,p_Batch_adj,Interpretation_Batch, Overall_Interpretation,contrasts)
 

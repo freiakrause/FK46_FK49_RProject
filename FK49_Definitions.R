@@ -85,14 +85,19 @@ PATHS <- list(
     input_FK46 = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/FK46_Legendplex"),
     output = "D:/Data/Experiment2/Output"
   ),
-  NASH = list(
-    input  = "D:/Data/Experiment2/Input",
-    output = "D:/Data/Experiment2/Output"
+  MASH = list(
+    FK49_output  =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/NASH_Score"),
+    FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
+    FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/NASH_Score"),
+    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData")
   ),
   exigo = list(
-    input  = "D:/Data/Experiment2/Input",
-    output = "D:/Data/Experiment2/Output"
-  ),
+    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData"),
+    FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/Exigo"),
+    FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
+    FK49_output  =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Exigo")
+    
+    ),
   general_data = list(
     FK49_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis"),
     FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis"),
@@ -110,7 +115,11 @@ PATHS <- list(
  Organs = list(
    output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Weight_Organs"),
    input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
+ ),
+ BH_baseline = list(
+   input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
  )
+ 
 )
 # targeted_in_pwd 
 # untargeted_pwd      
@@ -268,29 +277,61 @@ subset_data <- function(data,
 }
 
 
+PARAMETERS<-list(
+  BA = list(
+    BA_sort = c("CA","GCA","TCA",                                        #primary cholic acid and conjugates
+                "DCA","TDCA","LCA","GDCA","GLCA","THDCA","TLCA","TUDCA", #secodnray cholic and conjugates
+                  "CDCA","GCDCA","TCDCA",                                #primary Chenodeoxycholic acid and conjugates
+                  "12-ketoCDCA","HDCA","UDCA",                           #secondray Chenodeoxycholic acid and conjugates
+                  "alpha-MCA","beta-MCA","omega-MCA","TMCA"),           # muri cholich acid
+    BA_primary =c("CA","GCA","TCA",                                        #Cholic acid and conjugates
+                  "CDCA","GCDCA","TCDCA",                                    #Chenodeoxychiolic acid and conjugates
+                  "alpha-MCA","beta-MCA","omega-MCA","TMCA") ,    # Muricholic acids and conjugetes (only murine not human),
+    BA_secondary =c("DCA", "HDCA","LCA","UDCA","GDCA","GLCA","TDCA","THDCA","TLCA","TUDCA","12-ketoCDCA"),
+    #Status Origin con
+    BA_primary_uncon =c("CA", "CDCA","alpha-MCA","beta-MCA","omega-MCA") , 
+    BA_primary_con=c("GCA","TCA","GCDCA","TCDCA" ,"TMCA"),
+    BA_secondary_uncon =c("DCA", "HDCA","LCA","UDCA","12-ketoCDCA"),
+    BA_secondary_con =c("GDCA","GLCA","TDCA","THDCA","TLCA","TUDCA"),
+    #Status con un con
+    BA_uncon =c("CA","DCA","CDCA", "alpha-MCA","beta-MCA","omega-MCA","LCA","UDCA","HDCA","12-ketoCDCA"),
+    BA_con  =c("GCA","TCA","GCDCA","TCDCA","GDCA","TDCA","GLCA","TLCA","TUDCA","THDCA","TMCA")
+   ),
+  EXIGO = list(
+    FK49_Exigo_Comprehensive_Panel = list(
+      list(value="ALB",  y_title="Alb [g/L]",   normal_range=c(20,48), lowlimit=2),
+      list(value="TP",   y_title="TP [g/L]",    normal_range=c(36,66)),
+      list(value="GLOB", y_title="GLOB [g/L]"),
+      list(value="A.G",  y_title="A/G"),
+      list(value="TB",   y_title="TB [µmol/L]", normal_range=c(1,15), lowlimit=0.1),
+      list(value="GGT",  y_title="GGT [U/L]",   lowlimit=2),
+      list(value="AST",  y_title="AST [U/L]",   normal_range=c(59,247), hilimit=650, lowlimit=5),
+      list(value="ALT",  y_title="ALT [U/L]",   normal_range=c(28,132)),
+      list(value="ALP",  y_title="ALP [U/L]",   normal_range=c(62,209), lowlimit=5),
+      list(value="AMY",  y_title="AMY [U/L]",   normal_range=c(1691,3615)),
+      list(value="Crea", y_title="Crea [?]",    normal_range=c(12,71)),
+      list(value="UA",   y_title="UA [µmol/L]", normal_range=c(101,321), lowlimit=10),
+      list(value="BUN",  y_title="BUN [mmol/L]",normal_range=c(4,11.8)),
+      list(value="GLU",  y_title="GLU [mmol/L]",normal_range=c(5,10.67)),
+      list(value="TC",   y_title="TC [mmol/L]", normal_range=c(0.93,4.04)),
+      list(value="TG",   y_title="TG [mmol/L]", normal_range=c(0.62,1.63))),
+    
+    FK46_Exigo_Liver_Panel = list(
+      list(value="ALB",  y_title="Alb [g/L]",     normal_range=c(20,48), lowlimit=2),
+      list(value="TP",   y_title="TP [g/L]",      normal_range=c(36,66)),
+      list(value="GLOB", y_title="GLOB [g/L]"),
+      list(value="A.G",  y_title="A/G"),
+      list(value="TB",   y_title="TB [µmol/L]",   normal_range=c(0,15),  lowlimit=0.1),
+      list(value="GGT",  y_title="GGT [U/L]",     lowlimit=2),
+      list(value="AST",  y_title="AST [U/L]",     normal_range=c(59,247), hilimit=650, lowlimit=5),
+      list(value="ALT",  y_title="ALT [U/L]",     normal_range=c(28,132)),
+      list(value="ALP",  y_title="ALP [U/L]",     normal_range=c(62,209), lowlimit=5),
+      list(value="TBA",  y_title="TBA [µmol/L]",  lowlimit=1),
+      list(value="TC",   y_title="TC [mmol/L]",   normal_range=c(0.93,4.04))),
+  
+  FK49_Exigo_cols = c("ALB", "TP", "GLOB", "A.G", "TB", "GGT","AST", "ALT", "ALP", "AMY", "Crea", "UA", "BUN", "GLU", "TC", "TG"),
+  FK46_Exigo_cols = c("ALB", "TP", "GLOB", "A.G", "TB", "GGT","AST", "ALT", "ALP", "TBA", "TC")
+  )
+  )
 
-#### Bile Acids Sorted and Sorted into Primary and Secondary ones -----
-BA_sort <- c("CA","GCA","TCA",#primary cholic acid and conjugates
-             "DCA","TDCA","LCA","GDCA","GLCA","THDCA","TLCA","TUDCA", #secodnray cholic and conjugates
-             "CDCA","GCDCA","TCDCA",#primary Chenodeoxycholic acid and conjugates
-             "12-ketoCDCA","HDCA","UDCA", #secondray Chenodeoxycholic acid and conjugates
-             "alpha-MCA","beta-MCA","omega-MCA","TMCA" # muri cholich acid
-)                                                       
-#Status Origin
-BA_primary <-c("CA","GCA","TCA",                                        #Cholic acid and conjugates
-               "CDCA","GCDCA","TCDCA",                                     #Chenodeoxychiolic acid and conjugates
-               "alpha-MCA","beta-MCA","omega-MCA","TMCA")  
-  # Muricholic acids and conjugetes (only murine not human)
-BA_secondary <-c("DCA", "HDCA","LCA","UDCA","GDCA","GLCA","TDCA","THDCA","TLCA","TUDCA","12-ketoCDCA")
 
-#Status Origin con
-BA_primary_uncon <-c("CA", "CDCA","alpha-MCA","beta-MCA","omega-MCA")  
-BA_primary_con<-c("GCA","TCA","GCDCA","TCDCA" ,"TMCA")
-BA_secondary_uncon <-c("DCA", "HDCA","LCA","UDCA","12-ketoCDCA")
-BA_secondary_con <-c("GDCA","GLCA","TDCA","THDCA","TLCA","TUDCA")
-#Status con un con
-
-BA_uncon <-c("CA","DCA","CDCA", "alpha-MCA","beta-MCA","omega-MCA","LCA","UDCA","HDCA","12-ketoCDCA")
-BA_con  <-c("GCA","TCA", 
-              "GCDCA","TCDCA",
-              "GDCA","TDCA","GLCA","TLCA","TUDCA","THDCA","TMCA"              )

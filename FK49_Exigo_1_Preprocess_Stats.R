@@ -48,3 +48,5 @@ if (ExpID == "FK49") {
 } else {stop("Unknown ExpID.")
 }
 
+load(file.path( PATHS$exigo$FK49_input, "FK49_Data_prepared.Rda"))
+

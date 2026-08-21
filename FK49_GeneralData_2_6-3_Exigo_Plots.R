@@ -1,16 +1,18 @@
 rm(list=ls())
 gc()
-
-library(pheatmap)
 library(tidyverse)
-library(tibble)
-library(grid)
+library(pheatmap)
+library(ggfortify)
+library(factoextra)
+library(patchwork)
 library(ggnewscale)
-
 source("FK49_Definitions.R")
-# Read Raw Inputdata and general Data manipulation ------------------------------------------------------
-ExpID= "BH15"   # Decide if you want to load data from FK46 or FK49
+# Read Raw Inputdata ------------------------------------------------------
 
+ExpID= "FK49"   # Decide if you want to load data from FK46 or FK49
+
+# in fk49 i preprocessed FK49 data and BH15 baseline data in the same preprocessing and saved fk49 as d1 and BH15 as baseline_data. 
+# to be clear about the data used, with ExpID i have to specify which exp is going to be plotted and according to this d1 and paths are defined
 if(ExpID == "FK49"){
   load(file = file.path(PATHS$exigo$FK49_input,  "FK49_Exigo_prepared.Rda"))
   d1 <- d1
@@ -21,7 +23,6 @@ if(ExpID == "FK49"){
   }else if(ExpID == "FK46") {
   load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
     print("I dont know how the data looks for FK46 at the moment")
-    
     output_pwd = file.path(PATHS$exigo$FK46_output)
     param_list = PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
     stats <- read.csv2(file.path(output_pwd, "FK46_Exigo_Statistics.csv"))
@@ -29,15 +30,13 @@ if(ExpID == "FK49"){
     }else if(ExpID == "BH15") {
       load(file = file.path(PATHS$exigo$FK49_input,  "FK49_Exigo_prepared.Rda"))
       d1 <- baseline_data 
-      output_pwd = file.path(PATHS$exigo$FK49_output)
+      output_pwd = file.path(PATHS$exigo$BH15_output)
       param_list = PARAMETERS$EXIGO$FK49_Exigo_Comprehensive_Panel
       stats <- read.csv2(file.path(output_pwd, "BH15_Exigo_Statistics.csv"))
       
   }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
   }
 # Dotplot Exigo Panel --------------------------------------------------------------
-
-
 do_Exigo <- function(inputdata, value, batch = "2", sex = "both",
                      y_title, path_images,
                      normal_range = NULL, lowlimit = NULL, hilimit = NULL,
@@ -90,7 +89,7 @@ do_Exigo <- function(inputdata, value, batch = "2", sex = "both",
     guides(fill = guide_legend(order = 1, nrow = 2, byrow = TRUE)) +
     ggnewscale::new_scale_fill() +
     geom_point(aes(shape = Sex,  color = censor_status_combined), fill = "lightgrey",alpha=0.8,
-               position = position_jitter(width = 0.15), size = 5.3, stroke = 1.8) +
+               position = position_jitter(width = 0.15, height = 0), size = 5.3, stroke = 1.8) +
     scale_shape_manual(name = "Sex", values = Sex_shape) +
     scale_color_manual(name = "Censoring", values = c("Below LOD" = "navyblue",
                                                       "Above ULOQ" = "sienna4",
@@ -165,7 +164,7 @@ plots <- lapply(param_list, function(p) {
   p_final
 })
 
-
+# With EHatmapts i want to viszualise overview. so that i do not only report the significan results but give overview of what was looked at
 # Generate Matrix for Heatmaps -----
 if(ExpID == "FK49"){
   d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols)) %>% as.matrix()
@@ -179,6 +178,7 @@ rownames(d_mat) <- d1$Animal
 d_mat <- t(d_mat)
 ann <- data.frame(Treatment = d1$Treatment, Sex = d1$Sex)
 rownames(ann) <- d1$Animal
+
 # Correlation heatmap based on original numerical values -----
 cor_spearman <- cor(d_mat, method = "spearman", use = "pairwise.complete.obs")
 
@@ -192,24 +192,74 @@ p_cor <- pheatmap(
   fontsize_col = 9,
   fontsize_number = 8,
   annotation_col = ann,
-  color = colorRampPalette(c("white", "orange", "red"))(50),
-  annotation_colors = list(Treatment = Treatment_colors[c("Ctrl", "TAM")],   Sex = Sex_colors),
-  main = paste0("Correlation HeatMap ", ExpID),
+  color = colorRampPalette(c("blue", "white", "red"))(100),
+  breaks = seq(-1, 1, length.out = 101),  annotation_colors = list(Treatment = Treatment_colors[c("Ctrl", "TAM")],   Sex = Sex_colors),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
   angle_col = 90,
   gaps_row = 3,
   display_numbers = FALSE,
+  show_rownames = F,
+  show_colnames = F,
   number_format = "%.1f",
   legend_breaks = c(-1, -0.5, 0, 0.5, 1),
   legend_labels = c("-1", "-0.5", "0", "0.5", "1")
 )
 
-ggsave( filename = "FK49_Exigo_Correlation.png",
+ggsave( filename = "FK49_Exigo_Correlation_Animals.png",
         plot = p_cor, path = file.path(output_pwd),
         width = 5.5,height = 5, dpi = 300,bg = "white")
+### -----
+#  -----
+if(ExpID == "FK49"){
+  d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols)) %>% as.matrix()
+}else if(ExpID == "FK46") {
+  d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK46_Exigo_cols)) %>% as.matrix()
+}else if(ExpID == "BH15") {
+    d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols)) %>% as.matrix()
+}else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
+}
 
+rownames(d_mat) <- d1$Animal
+d_mat <- t(d_mat)
+ann <- data.frame(Treatment = d1$Treatment, Sex = d1$Sex)
+rownames(ann) <- d1$Animal
+
+# Correlation heatmap based on original numerical values -----
+cor_spearman <- cor(t(d_mat), method = "spearman", use = "pairwise.complete.obs")
+range(cor_spearman, na.rm = TRUE)
+
+p_cor <- pheatmap(
+  cor_spearman,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  fontsize = 10,
+  fontsize_main = 7,
+  fontsize_row = 9,
+  fontsize_col = 9,
+  fontsize_number = 8,
+  color = colorRampPalette(c("blue", "white", "red"))(100),
+  breaks = seq(-1, 1, length.out = 101),
+
+  border_color = "black",
+  cellwidth = 10,
+  cellheight = 10,
+  angle_col = 90,
+  gaps_row = 3,
+  show_rownames = TRUE,
+  show_colnames = TRUE,
+  display_numbers = FALSE#,
+  # number_format = "%.2f",
+  # legend_breaks = c(-1, -0.5, 0, 0.5, 1),
+  # legend_labels = c("-1", "-0.5", "0", "0.5", "1")
+)
+
+ggsave( filename = "FK49_Exigo_Correlation_Parameters.png",
+        plot = p_cor, path = file.path(output_pwd),
+        width = 8,height = 5, dpi = 300,bg = "white") 
+
+### 
 # Include censoring for z score scaled heatmapt for overview -----
 cens_cols <- paste0(PARAMETERS$EXIGO$FK49_Exigo_cols, "_censored")
 direction_cols <- paste0(PARAMETERS$EXIGO$FK49_Exigo_cols, "_direction")
@@ -223,11 +273,11 @@ direction_mat <- d1 %>% select(all_of(direction_cols)) %>% as.matrix()
 rownames(direction_mat) <- d1$Animal
 direction_mat <- t(direction_mat)
 rownames(direction_mat) <- PARAMETERS$EXIGO$FK49_Exigo_cols
-
+# Generate z scor scaled heatmapt with all exigo parameters -----
 # Scale data
 d_scaled <- t(scale(t(d_mat))) # z score scaling
 
-stats <- stats %>%mutate(effect_size_type = factor(effect_size_type, levels = c("standardized model effect", "GMR", "NA"))) 
+stats <- stats %>%mutate(effect_size_type = factor(effect_size_type, levels = c("standardized model effect", "GMR", "NA"))) #geometric mean ratio
 
 # Sort parameters: first by effect size type, then by adjusted p-value
 p_order <- stats %>%
@@ -285,7 +335,7 @@ p_color_list <- c(
   "NA" = "grey80"
 )
 
-# Heatmap
+## Z score scaled Heatmap -----
 d_s <- pheatmap(
   d_scaled,
   cluster_rows = FALSE,
@@ -300,7 +350,6 @@ d_s <- pheatmap(
   color = heatmap_colors,
   breaks = heatmap_breaks,
   annotation_colors = list(Treatment = Treatment_colors[c("Ctrl", "TAM")], Sex = Sex_colors, adj.p = p_color_list),
-  main = paste0("Scaled HeatMap ", ExpID),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
@@ -317,7 +366,7 @@ ggsave(  filename = paste0(ExpID, "_Exigo_scaled.png"),
   plot = d_s, path = paste0(output_pwd),width = 6,height = 5, dpi = 300,bg = "white")
 
 
-# Generate df for effect sizes
+# Generate df for effect sizes -----
 stats_eff_size <- stats %>%
   filter(!is.na(effect_size)) %>%
   mutate( parameter = factor(parameter,levels = rev(p_order)))
@@ -325,7 +374,7 @@ stats_eff_size <- stats %>%
 stats_lm <- stats_eff_size %>%filter(effect_size_type == "standardized model effect")
 stats_gmr <- stats_eff_size %>% filter(effect_size_type == "GMR")
 
-# Standardized model-based effect size plot
+# Standardized model-based effect size plot -----
 p_lm <- ggplot( stats_lm, aes(x = effect_size, y = parameter)) +
   geom_vline( xintercept = 0,  linetype = "dashed") +
   geom_errorbar(aes(xmin = effect_CI_low, xmax = effect_CI_high ),height = 0) +
@@ -334,7 +383,7 @@ p_lm <- ggplot( stats_lm, aes(x = effect_size, y = parameter)) +
   labs( x = "Standardized model-based effect TAM - Ctrl",y = NULL) +
   theme_classic()
 
-# Geometric mean ratio plot
+# Geometric mean ratio plot -----
 p_gmr <- ggplot(stats_gmr,aes(x = effect_size, y = parameter)) +
   geom_vline( xintercept = 1, linetype = "dashed" ) +
   geom_errorbar(aes(xmin = effect_CI_low, xmax = effect_CI_high),height = 0) +
@@ -346,7 +395,128 @@ p_gmr <- ggplot(stats_gmr,aes(x = effect_size, y = parameter)) +
 ggsave(p_lm, file= paste0(ExpID,"_Exigo_Effect_size_LM.png"),dpi=300, width=5, height=3,path=output_pwd)
 ggsave(p_gmr, file=paste0(ExpID,"_Exigo_Effect_size_Cens.png"),dpi=300, width=5, height=3,path=output_pwd)
 
-# Combine effect size plots
+# Combine effect size plots -----
 p_effect <- p_lm + p_gmr +patchwork::plot_layout( widths = c(1, 1))
 p_effect
 ggsave(p_effect, file= paste0(ExpID,"_Exigo_Effect_size_LM+Cens.png"),dpi=300, width=6, height=3,path=output_pwd)
+
+
+# plot PCAs --------------------------------------------------------------------
+if(ExpID == "FK49"){
+  pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))%>%drop_na()
+  numerical_d <- pca_data %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))
+  }else if(ExpID == "FK46") {
+    pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$EXIGO$FK46_Exigo_cols))%>%drop_na()
+    numerical_d <- pca_data %>% select(all_of(PARAMETERS$EXIGO$FK46_Exigo_cols))
+    }else if(ExpID == "BH15") {
+  pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))%>%drop_na()
+  numerical_d <- pca_data %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))
+  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
+}
+
+
+scaled_d <-scale(numerical_d)
+data.pca <- prcomp(scaled_d)
+summary(data.pca)
+data.pca$loadings[, 1:2]
+f1<-fviz_eig(data.pca, addlabels = TRUE)
+f2<-fviz_pca_var(data.pca, col.var = "black")
+f3<-fviz_cos2(data.pca, choice = "var", axes = 1:2)
+f4<-fviz_pca_var(data.pca, col.var = "cos2", gradient.cols = c("black", "orange", "green"), repel = TRUE)
+f5<-fviz_contrib(data.pca, choice = "var", axes = 1, top = 15, sort.val = c("desc"))
+f6<-autoplot(data.pca, data = pca_data, x = 1, y = 2, size = 3, fill = "Treatment",color = "Treatment", shape = "Sex")+
+  theme_bw()+ 
+  theme_classic()+
+  ggtitle("Principal Component Analysis")+ 
+  scale_color_manual(values =Treatment_colors[c("Ctrl","TAM")])+
+  scale_fill_manual(values =Treatment_colors[c("Ctrl","TAM")])+
+  scale_shape_manual(values=Sex_shape)+
+ # geom_text(aes(label = Animal), vjust = -1, size = 3)+
+  theme(text = element_text(size = 20))
+ggsave(f1, path = output_pwd,file= paste0(ExpID,"_PCA_ScreePlot.png"),dpi=300, width=4, height=2.5)
+ggsave(f2, path = output_pwd,file= paste0(ExpID,"_PCA_VariablePlot.png"),dpi=300, width=5, height=4)
+ggsave(f3, path = output_pwd,file= paste0(ExpID,"_PCA_Cos2.png"),dpi=300, width=5, height=4)
+ggsave(f4, path = output_pwd,file= paste0(ExpID,"_PCA_Variable_Cos2.png"),dpi=300, width=5, height=4)
+ggsave(f5, path = output_pwd,file= paste0(ExpID,"_PCA_Variable_Contribution_PC1.png"),dpi=300, width=5, height=4)
+ggsave(f6, path = output_pwd,file= paste0(ExpID,"_PCA_Scores.png"),dpi=300, width=9, height=7)
+
+volcano_data <- stats %>%
+  mutate( FC = mean_tam / mean_ctrl,
+    log2FC = log2(FC),
+    negLog10FDR = -log10(p_adj),
+    direction = case_when(
+      p_adj < 0.05 & log2FC < 0 ~ "TAM lower",
+      p_adj < 0.05 & log2FC > 0 ~ "TAM higher",
+      TRUE ~ "Not significant"
+    ),  significant = !is.na(p_adj) & p_adj < 0.05,
+    Metabolite = parameter ) %>%
+  filter(
+    is.finite(log2FC),
+    is.finite(negLog10FDR)
+  )
+
+p_volcano <- ggplot(
+  volcano_data,
+  aes(x = log2FC, y = negLog10FDR)
+) +
+  geom_point(
+    aes(fill = direction),
+    alpha = 0.5,
+    size = 3,
+    stroke = 0.5,
+    position = position_jitter(width = 0.08),
+    shape = 21,
+    color = "black"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "TAM lower" = "blue",
+      "Not significant" = "grey60",
+      "TAM higher" = "firebrick"
+    )
+  ) +
+  geom_vline(
+    xintercept = c(-0.5, 0.5),
+    linetype = "dashed",
+    color = "grey80"
+  ) +
+  geom_hline(
+    yintercept = -log10(0.05),
+    linetype = "dashed",
+    color = "grey80"
+  ) +
+  labs(
+    title = paste0("Volcano plot - Treatment at TP11"),
+    x = expression(paste("log"[2], " FC (TAM / Ctrl)")),
+    y = expression(paste("-log"[10], "(adj.p.value)"))
+  ) +
+  theme_classic() +
+  theme(
+    panel.grid = element_line(
+      color = "grey90",
+      linewidth = 0.1
+    )
+  ) +
+  ggrepel::geom_text_repel(
+    data = volcano_data %>%
+      filter(significant == TRUE),
+    aes(label = Metabolite),
+    size = 4,
+    max.overlaps = 20
+  ) +
+  coord_cartesian(
+    xlim = c(-4, 4),
+    ylim = c(0, 5)
+  )
+
+print(p_volcano)
+
+ggsave(
+  plot = p_volcano,
+  filename = paste0(ExpID, "_Exigo_volcano.png"),
+  width = 6,
+  height = 9,
+  dpi = 300,
+  path = output_pwd
+)
+

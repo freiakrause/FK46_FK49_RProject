@@ -38,6 +38,8 @@ T_S_colors <- c("EtOH_female" = "#F5A9B8",
 Diet_colors <- c("CDHFD" = "darkviolet" ,
           "CDHFD13" = "darkviolet" , 
           "ND"      = "darkorange3")
+Batch_colors<-c("1"= "blue",
+                "2"= "red")
 
 # Function to create directories
 create_output_folders <- function(base_path, folders) {
@@ -65,8 +67,8 @@ PATHS <- list(
     input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/untargetedLivMetabolome")
     ),
   BA = list(
-    input  = "D:/Data/Experiment2/Input",
-    output = "D:/Data/Experiment2/Output"
+    input =  paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_BA/Report_M087_BACID01_20251222_withMeta.csv"),
+    output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/BA")
   ),
   microbiome = list(
     input  = "D:/Data/Experiment2/Input",
@@ -81,21 +83,24 @@ PATHS <- list(
     output = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM")
   ),
   legendplex = list(
-    input_FK49 = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Legendplex"),
-    input_FK46 = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/FK46_Legendplex"),
-    output = "D:/Data/Experiment2/Output"
+    FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Legendplex/02_generated"),
+    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/FK46_Legendplex"),
+    FK46_output =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/Legendplex"),
+    FK49_output =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Legendplex")
   ),
   MASH = list(
     FK49_output  =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/NASH_Score"),
     FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
     FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/NASH_Score"),
-    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData")
+    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
   ),
   exigo = list(
     FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData"),
     FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/Exigo"),
     FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
-    FK49_output  =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Exigo")
+    FK49_output  =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Exigo/FK49"),
+    BH15_input= paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
+    BH15_output= paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Exigo/BH15")
     
     ),
   general_data = list(
@@ -295,7 +300,8 @@ PARAMETERS<-list(
     BA_secondary_con =c("GDCA","GLCA","TDCA","THDCA","TLCA","TUDCA"),
     #Status con un con
     BA_uncon =c("CA","DCA","CDCA", "alpha-MCA","beta-MCA","omega-MCA","LCA","UDCA","HDCA","12-ketoCDCA"),
-    BA_con  =c("GCA","TCA","GCDCA","TCDCA","GDCA","TDCA","GLCA","TLCA","TUDCA","THDCA","TMCA")
+    BA_con  =c("GCA","TCA","GCDCA","TCDCA","GDCA","TDCA","GLCA","TLCA","TUDCA","THDCA","TMCA"),
+    meta_cols =c("Animal","Sample","Sex","Treatment","Diet","ExpID","T_D_S","T_D" ,"T_S")
    ),
   EXIGO = list(
     FK49_Exigo_Comprehensive_Panel = list(
@@ -331,6 +337,28 @@ PARAMETERS<-list(
   
   FK49_Exigo_cols = c("ALB", "TP", "GLOB", "A.G", "TB", "GGT","AST", "ALT", "ALP", "AMY", "Crea", "UA", "BUN", "GLU", "TC", "TG"),
   FK46_Exigo_cols = c("ALB", "TP", "GLOB", "A.G", "TB", "GGT","AST", "ALT", "ALP", "TBA", "TC")
+  ),
+  Legendplex = list(
+    cytokine_list= list(
+      list(value = "IL23",    y_title = "IL-23 [pg/mL]"),
+      list(value = "IL1a",    y_title = "IL-1α [pg/mL]"),
+      list(value = "IFNy",    y_title = "IFN-γ [pg/mL]"),
+      list(value = "TNFa",    y_title = "TNF-α [pg/mL]"),
+      list(value = "MCP1",    y_title = "MCP-1 [pg/mL]"),
+      list(value = "IL12p70", y_title = "IL-12p70 [pg/mL]"),
+      list(value = "IL1ß",    y_title = "IL-1β [pg/mL]"),
+      list(value = "IL10",    y_title = "IL-10 [pg/mL]"),
+      list(value = "IL6",     y_title = "IL-6 [pg/mL]"),
+      list(value = "IL27",    y_title = "IL-27 [pg/mL]"),
+      list(value = "IL17A",   y_title = "IL-17A [pg/mL]"),
+      list(value = "IFNß",    y_title = "IFN-β [pg/mL]"),
+      list(value = "GMCSF",   y_title = "GM-CSF [pg/mL]")
+    ),
+    
+    cytokines = c(
+      "IL23", "IL1a", "IFNy", "TNFa", "MCP1", "IL12p70",
+      "IL1ß", "IL10", "IL6", "IL27", "IL17A", "IFNß", "GMCSF"
+    )
   )
   )
 

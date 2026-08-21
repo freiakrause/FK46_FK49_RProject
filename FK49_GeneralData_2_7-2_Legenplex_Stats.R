@@ -1,26 +1,26 @@
-rm=(list=ls())
+rm(list=ls())
 gc()
 library(tidyverse)
 library(NADA2)
 library(emmeans)
 source("FK49_Definitions.R")
 ExpID= "FK49"   # Decide if you want to load data from FK46 or FK49
- 
-if(ExpID == "FK49"){
-   load(file = file.path(PATHS$exigo$FK49_input,  "FK49_Exigo_prepared.Rda"))
-   param_list=PARAMETERS$EXIGO$FK49_Exigo_Comprehensive_Panel
-   output_pwd = file.path(PATHS$exigo$FK49_output)
-   }else if(ExpID == "FK46") {
-     load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
-     param_list=  param_list=PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
-     output_pwd = file.path(PATHS$exigo$FK46_output)
-     
-   }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
-     }
 
-analyze_exigo_parameter <- function(inputdata,value,batch = "ALL",reference_batch = NULL) {
- #in preprocessing i generated colms for censoring and direction 
- ## to not write a list for their names it is easier to give the names to the function this way 
+
+if(ExpID == "FK49"){
+ data<- readRDS (file = file.path(dirname(dirname(PATHS$legendplex$FK49_output)),  "01_RawData/FK49_Legendplex_clean.Rds"))
+  cytokine_list<-PARAMETERS$Legendplex$cytokine_list  
+  output_pwd = file.path(PATHS$legendplex$FK49_output)
+}else if(ExpID == "FK46") {
+  # load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
+  # param_list=  param_list=PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
+  # output_pwd = file.path(PATHS$exigo$FK46_output)
+  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
+}
+
+analyze_legendplex_parameter <- function(inputdata,value,batch = "ALL",reference_batch = NULL) {
+  #in preprocessing i generated colms for censoring and direction 
+  ## to not write a list for their names it is easier to give the names to the function this way 
   censored_col <- paste0(value, "_censored")
   direction_col <- paste0(value, "_direction")
   d <- inputdata %>%filter(!is.na(.data[[value]]))
@@ -86,66 +86,63 @@ analyze_exigo_parameter <- function(inputdata,value,batch = "ALL",reference_batc
     if (sufficient) {
       if (sufficient) {
         
-        cen_result <- suppressWarnings(
-          with( d,cen2means(value_numeric,cens_logical, group = Treatment )))
+        d <- d %>% mutate(Treatment = factor(Treatment, levels = c("Ctrl", "TAM")),
+                          Sex = factor(Sex, levels = c("female", "male")))
         
-        result$method <- "cen2means"
-        result$p_treatment <- cen_result$pval
+        cen_result <- capture.output(suppressWarnings(with(d,cen2way(ifelse(cens_logical, value_numeric * 2, value_numeric),
+                                                                     cens_logical, Treatment, Sex, LOG = TRUE, interact = TRUE))))
+        p_lines <- cen_result[grep("Treatment|Sex|interaction", cen_result)]
+        p_values <- as.numeric(sub(".*\\s([0-9]+\\.[0-9]+)$", "\\1", p_lines))
+        
+        result$method <- "cen2way"
+        result$p_treatment <- p_values[3]
         
         #  Effect size: Geometric Mean Ratio (TAM / Ctrl)-----
-        y1 <- d$value_numeric
+        y1 <- ifelse(d$cens_logical, d$value_numeric * 2, d$value_numeric)
         y2 <- d$cens_logical
-        grp <- factor(d$Treatment)
+        e <- ifelse(d$Treatment == "Ctrl", 1, -1)
+        s <- ifelse(d$Sex == "female", 1, -1)
+        int <- e * s
         
-        # same transformation used internally by cen2means()
         lnvar <- log(y1)
-        fconst <- max(lnvar)
-        flip.log <- fconst - lnvar
-        detect <- as.logical(1 - as.integer(y2))
+        fconst <- max(lnvar, na.rm = TRUE)
+        flip.log <- fconst + 1 - lnvar
+        detect <- !y2
         
         logCensData <- survival::Surv(flip.log, detect, type = "right")
-        cen_model <- survival::survreg( logCensData ~ grp,dist = "gaussian" )
+        cen_model <- survival::survreg(logCensData ~ e + s + int, dist = "gaussian")
         
-        # Reverse the flipping used by cen2means()
+        # Reverse the flipping used by cen2way()
         beta <- -coef(cen_model)
-        beta[1] <- fconst + beta[1]
+        beta[1] <- fconst + 1 + beta[1]
         
-        # log geometric means
-        log_GM_ctrl <- beta[1]
-        log_GM_tam  <- beta[1] + beta[2]
+        # log geometric means, marginal over Sex
+        b0 <- beta["(Intercept)"]
+        bT <- beta["e"]
+        bS <- beta["s"]
+        bI <- beta["int"]
+        
+        log_GM_ctrl <- mean(c(b0 + bT + bS + bI, b0 + bT - bS - bI))
+        log_GM_tam <- mean(c(b0 - bT + bS - bI, b0 - bT - bS + bI))
         
         # geometric means
         GM_ctrl <- exp(log_GM_ctrl)
-        GM_tam  <- exp(log_GM_tam)
+        GM_tam <- exp(log_GM_tam)
         
         # GMR = TAM / Ctrl
-        log_GMR <- beta[2]
-        GMR <- exp(log_GMR)
-        
-        # 95% CI for log GMR
-        se_log_GMR <- sqrt( vcov(cen_model)[2, 2] )
-        
-        CI_log_low <- log_GMR - qnorm(0.975) * se_log_GMR
-        CI_log_high <- log_GMR + qnorm(0.975) * se_log_GMR
-        
-        # Back-transform CI
-        GMR_CI_low <- exp(CI_log_low)
-        GMR_CI_high <- exp(CI_log_high)
+        GMR <- GM_tam / GM_ctrl
         
         # store results
         result$mean_ctrl <- GM_ctrl
         result$mean_tam <- GM_tam
         
         result$effect_size <- GMR
-        result$effect_CI_low <- GMR_CI_low
-        result$effect_CI_high <- GMR_CI_high
-        
         result$effect_size_type <- "GMR"
       }
       
     } else {
-      result$method <- "cen2means_not_performed"
-      }
+      result$method <- "cen2way_not_performed"
+    }
     
   } else {
     # Statistics for uncensored data -----
@@ -194,24 +191,11 @@ analyze_exigo_parameter <- function(inputdata,value,batch = "ALL",reference_batc
   result
 }
 
-if (ExpID=="FK49") {
-}  else if (ExpID == "FK46"){
-} else{
-    print("I don't know which Exigo you used.")}
 
-
-results_list <- lapply(param_list,  function(x) {analyze_exigo_parameter(inputdata = d1, value = x$value, batch = "ALL" ) }) # perform the function over the paramter list and put it in list
+results_list <- lapply(cytokine_list,  function(x) {analyze_legendplex_parameter(inputdata = data, value = x$value, batch = "ALL" ) }) # perform the function over the paramter list and put it in list
 StatsOutput <- bind_rows(results_list) # make tibble out of the list 
 StatsOutput <- StatsOutput %>%mutate(p_adj = p.adjust(p_treatment,method = "fdr")) #adjust pvalues
-write.csv2( StatsOutput,file = file.path(output_pwd, "FK49_Exigo_Statistics.csv"),row.names = FALSE)
-
-
-
-
-results_list <- lapply(param_list,  function(x) {analyze_exigo_parameter(inputdata = baseline_data, value = x$value, batch = "ALL" ) }) # perform the function over the paramter list and put it in list
-StatsOutput <- bind_rows(results_list) # make tibble out of the list 
-StatsOutput <- StatsOutput %>%mutate(p_adj = p.adjust(p_treatment,method = "fdr")) #adjust pvalues
-write.csv2( StatsOutput,file = file.path(output_pwd, "BH15_Exigo_Statistics.csv"),row.names = FALSE)
+write.csv2(StatsOutput,file = file.path(output_pwd, paste0(ExpID,"_Legendplex_Statistics.csv")),row.names = FALSE)
 
 rm=(list=ls())
 gc()

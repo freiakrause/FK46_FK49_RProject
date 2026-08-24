@@ -129,8 +129,19 @@ analyze_legendplex_parameter <- function(inputdata,value,batch = "ALL",reference
         GM_ctrl <- exp(log_GM_ctrl)
         GM_tam <- exp(log_GM_tam)
         
-        # GMR = TAM / Ctrl
-        GMR <- GM_tam / GM_ctrl
+        log_GMR <- -2 * beta["e"]
+        GMR <- exp(log_GMR)
+        # 95% CI for log(GMR)
+        se_b_tr <- sqrt(vcov(cen_model)["e", "e"])
+        se_log_GMR <- 2 * se_b_tr
+        
+        # Back-transform CI to GMR scale
+        CI_low <- exp(log_GMR - 1.96 * se_log_GMR)
+        CI_high <- exp(log_GMR + 1.96 * se_log_GMR)
+        
+        # Store results
+        result$effect_CI_low <- CI_low
+        result$effect_CI_high <- CI_high
         
         # store results
         result$mean_ctrl <- GM_ctrl

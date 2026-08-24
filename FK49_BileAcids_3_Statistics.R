@@ -163,23 +163,11 @@ for (ba in BA_to_test) {
       # ------------------------------------------------------------
       
       lnvar <- log(y1)
-      
       fconst <- max(lnvar)
-      
       flip.log <- fconst + 1 - lnvar
-      
       detect <- !y2
-      
-      logCensData <- survival::Surv(
-        flip.log,
-        detect,
-        type = "right"
-      )
-      
-      cen_model <- survival::survreg(
-        logCensData ~ e + d + int,
-        dist = "gaussian"
-      )
+      logCensData <- survival::Surv(flip.log, detect, type = "right")
+      cen_model <- survival::survreg( logCensData ~ e + d + int,  dist = "gaussian" )
       
       # ------------------------------------------------------------
       # Convert coefficients back to the original log scale
@@ -217,8 +205,19 @@ for (ba in BA_to_test) {
       GM_ctrl <- exp(log_GM_Ctrl)
       GM_tam  <- exp(log_GM_TAM)
       # Treatment fold change / geometric mean ratio
-      GMR <- GM_tam / GM_ctrl
+       log_GMR <- -2 * beta["e"]
+       GMR <- exp(log_GMR)
+      # 95% CI for log(GMR)
+      se_b_tr <- sqrt(vcov(cen_model)["e", "e"])
+      se_log_GMR <- 2 * se_b_tr
+      
+      # Back-transform CI to GMR scale
+      CI_low <- exp(log_GMR - 1.96 * se_log_GMR)
+      CI_high <- exp(log_GMR + 1.96 * se_log_GMR)
+      
       # Store results
+      result$effect_CI_low <- CI_low
+      result$effect_CI_high <- CI_high
       result$mean_Ctrl <- GM_ctrl
       result$mean_TAM <- GM_tam
       result$effect_size <- GMR
@@ -226,6 +225,8 @@ for (ba in BA_to_test) {
       result$effect_size_calc <-"censored log-normal two-way model; marginal Treatment GMR TAM/Ctrl"
     } else {
       result$method <- "cen2way_not_performed"
+      result$effect_size_type <- "cen2way not performed"
+      
     }
     
   } else {

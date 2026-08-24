@@ -8,12 +8,9 @@ library(factoextra)
 library(patchwork)
 library(ggnewscale)
 source("FK49_Definitions.R")
-### hier später weiter achen. statisik wurde auf censoring angepasst.
-### 
-###  bei exigo prüfen ob ich statt cen2 means cen2way implementiren kann und sollte.
-###  volcano plot prüfen, warum censored werte nicht dargestellt werden.
-###  bei exigo prüfen ob p werte richtig gezogen, ob volcano da ist und ob censored value im volcano erscheinen
-###  
+
+## hier weiter machen: soll teich bile acids heat maps nochmal nach secodnry, primary und conjugated unconjugated plotten? 
+## oder passiert das dann bei correlations/ multiomics integration
 ###  # Read Raw Inputdata ------------------------------------------------------
 
 ExpID <- "FK49"
@@ -23,11 +20,8 @@ d1 <-  readRDS(file = paste0(dirname(dirname(output_pwd)), "/01_RawData/FK49_BA_
 filter(Timepoint == "11") 
 param_list <- PARAMETERS$BA$BA_sort
 stats <- read.csv2(file.path(output_pwd, paste0(ExpID, "_BA_TP11_Statistics.csv")))
-head(d1)
-d1$GCDCA
 
 # Dotplot Bile Acids ------------------------------------------------------
-
 do_BA <- function(inputdata, value, sex = "both", y_title, path_images, p_value = NULL) {
   censored_col <- paste0(value, "_censored")
 
@@ -84,38 +78,31 @@ do_BA <- function(inputdata, value, sex = "both", y_title, path_images, p_value 
 }
 
 
-# Generate Bile Acid Treatment Plots --------------------------------------
-
+# Generate the bar plots --------------
 plots <- lapply(param_list, function(p) {
   stat_row <- stats %>% filter(BA == p)
   if (nrow(stat_row) == 0) return(NULL)
-  
+  ##adjust p values -----
   p_adj_treatment <- stat_row$adj_p_Treatment[1]
   p_adj_sex <- stat_row$adj_p_Treatment_Sex[1]
   p_adj_female <- stat_row$adj_p_Treatment_female[1]
   p_adj_male <- stat_row$adj_p_Treatment_male[1]
   
-  # ------------------------------------------------------------
-  # Overall Treatment effect
-  # ------------------------------------------------------------
-  
+  ## generate Ctrl vs TAm plot and add adjusted p value -----
   res <- do_BA(d1, p, sex = "both", y_title = p, path_images = output_pwd)
   p_overall <- res$plot_raw + annotate("text", x = 1.5, y = res$y_pos, label = paste0("adj p = ", format.pval(p_adj_treatment, digits = 3)), size = 5.5, fontface = "italic")
   
   fname_val <- gsub("[^[:alnum:]_]", "_", p)
   ggsave(filename = paste0(ExpID, "_BA_", fname_val, "_Treatment.png"), plot = p_overall, path = output_pwd, width = 4, height = 11, dpi = 300)
   
-  # ------------------------------------------------------------
-  # Treatment effect by sex if Treatment x Sex is significant
-  # ------------------------------------------------------------
-  
+  ## p Treatment effect differ per sex - 
+  ## print both seexs in facets wirh p adjust male and female
   if (!is.na(p_adj_sex) && p_adj_sex < 0.05) {
     d_sex <- d1 %>%
       filter(Timepoint == "11", !is.na(.data[[p]])) %>%
       mutate(Treatment = factor(Treatment, levels = c("Ctrl", "TAM")),
              Sex = factor(Sex, levels = c("female", "male")), 
              Censoring = factor(.data[[censored_col]],levels = c(FALSE, TRUE),labels = c("Not censored", "Censored")))
-    
     
     p_sex <- ggplot(d_sex, aes(x = Treatment, y = .data[[p]])) +
       stat_summary(fun = mean, geom = "bar", aes(fill = Treatment), color="black",alpha = 0.5, width = 0.75) +
@@ -150,10 +137,7 @@ plots <- lapply(param_list, function(p) {
     ggsave(filename = paste0(ExpID, "_BA_", fname_val, "_Treatment_by_Sex.png"), plot = p_sex, path = output_pwd, width = 8, height = 11, dpi = 300)
   }
   
-  # ------------------------------------------------------------
-  # Sex-specific Treatment effects
-  # ------------------------------------------------------------
-  
+  # if treatment effect in female or males in signiicant, print female or male plot
   sex_plots <- list()
   
   if (!is.na(p_adj_female) && p_adj_female < 0.05) {
@@ -175,19 +159,18 @@ plots <- lapply(param_list, function(p) {
 })
 
 
-# Generate Matrix for Heatmaps --------------------------------------------
-# Bile Acid heatmaps -------------------------------------------------------
+# Bile Acid heatmaps -----
 
 d_mat <- d1 %>%
   filter(Timepoint == "11") %>%
   select(all_of(param_list)) %>%
   as.matrix()
 
-rownames(d_mat) <- d1 %>% 
+rownames(d_mat) <- d1 %>%   
   filter(Timepoint == "11") %>% 
   pull(Animal)
 
-d_mat <- t(d_mat)
+d_mat <- t(d_mat) # make animal columns and bile acids rows
 ann <- d1 %>%
   filter(Timepoint == "11") %>%
   select(Treatment, Sex) %>%
@@ -197,18 +180,12 @@ rownames(ann) <- d1 %>%
   filter(Timepoint == "11") %>%
   pull(Animal)
 
-ann <- ann[colnames(d_mat), , drop = FALSE]
-
-dim(d_mat)
-head(d_mat[, 1:5])
+ann <- ann[colnames(d_mat), , drop = FALSE] 
 
 
-# Correlation heatmap based on bile acids ---------------------------------
+# Spearman Correlation heatmap between animals -----
 #d_mat is oriented so taht animals are columns and animal are going to be correlated against each other
 cor_spearman <- cor(d_mat,method = "spearman",use = "pairwise.complete.obs")
-
-round(cor_spearman, 2)
-summary(cor_spearman[upper.tri(cor_spearman)])
 
 p_cor <- pheatmap(
   cor_spearman,
@@ -221,7 +198,7 @@ p_cor <- pheatmap(
   fontsize_number = 8,
   annotation_col = ann,
   color = colorRampPalette(c("blue", "white", "red"))(100),
-  breaks = seq(-1, 1, length.out = 101),
+  #breaks = seq(-1, 1, length.out = 101),
   annotation_colors = list( Treatment = Treatment_colors[c("Ctrl", "TAM")],
     Sex = Sex_colors),
   border_color = "black",
@@ -234,29 +211,17 @@ p_cor <- pheatmap(
   legend_breaks = c(-1, -0.5, 0, 0.5, 1),
   legend_labels = c("-1", "-0.5", "0", "0.5", "1"))
 
-ggsave(
-  filename = paste0(ExpID, "_BA_Correlation_Animals_ranks.png"),
-  plot = p_cor,
-  path = output_pwd,
-  width = 5.5,
-  height = 5,
-  dpi = 300,
-  bg = "white"
-)
+ggsave( filename = paste0(ExpID, "_BA_Correlation_Animals_ranks_Scale1.png"),
+  plot = p_cor, path = output_pwd,width = 5.5,height = 5, dpi = 300,bg = "white")
 
 p_cor
-# Correlation heatmap between bile acids -------------------------------
-ba_sd <- apply(d_mat, 1, sd, na.rm = TRUE)
-
+# Spearman Correlation heatmap between bile acids -----
+ba_sd <- apply(d_mat, 1, sd, na.rm = TRUE) 
 d_mat_cor <- d_mat[ba_sd > 0, , drop = FALSE] # bila acids that have 0 varianze * which are constant (due to omy censoring) are left out
 
-cor_spearman <- cor(         #d_mat_cor is transposed so that bile acids are columns and bile acids are being correlated
-  t(d_mat_cor),
-  method = "spearman",
-  use = "pairwise.complete.obs"
-)
+#d_mat_cor is being transposed so that bile acids are columns and bile acids are being correlated
+cor_spearman <- cor( t(d_mat_cor),method = "spearman",use = "pairwise.complete.obs")
 
-sum(is.na(cor_spearman))
 p_cor <- pheatmap(
   cor_spearman,
   cluster_rows = F,
@@ -267,7 +232,7 @@ p_cor <- pheatmap(
   fontsize_col = 9,
   fontsize_number = 8,
   color = colorRampPalette(c("blue", "white", "red"))(100),
-  breaks = seq(-1, 1, length.out = 101),
+  #breaks = seq(-1, 1, length.out = 101),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
@@ -277,15 +242,8 @@ p_cor <- pheatmap(
   show_colnames = TRUE
 )
 
-ggsave(
-  filename = paste0(ExpID, "_BA_Correlation_Parameters_ranks.png"),
-  plot = p_cor,
-  path = output_pwd,
-  width = 8,
-  height = 5,
-  dpi = 300,
-  bg = "white"
-)
+ggsave( filename =paste0(ExpID, "_BA_Correlation_Parameters_ranks_scale1.png"),
+  plot = p_cor,  path = output_pwd, width = 8,height = 5, dpi = 300,bg = "white")
 
 
 # Correlation heatmap based on bile acids - Pearson ----------------------
@@ -304,51 +262,35 @@ d_mat_pearson <- t(d_mat_pearson)
 
 dim(d_mat_pearson)
 head(d_mat_pearson[, 1:5])
-
-summary(as.vector(as.matrix(d_mat_pearson)))
-
 apply(d_mat_pearson, 2, sd, na.rm = TRUE)
-
 apply(d_mat_pearson,  2,function(x) length(unique(na.omit(x))))
-
 cor_pearson <- cor( d_mat_pearson,method = "pearson", use = "pairwise.complete.obs") #d_mat is oriented so taht animals are columns and animal are going to be correlated against each other
-
-
-round(cor_pearson, 2)
-summary(cor_pearson[upper.tri(cor_pearson)])
 
 p_cor <- pheatmap(
   cor_pearson,
-  cluster_rows = F,
-  cluster_cols = F,
+  cluster_rows = T,
+  cluster_cols = T,
   fontsize = 10,
   fontsize_main = 7,
   fontsize_row = 9,
   fontsize_col = 9,
   fontsize_number = 8,
   color = colorRampPalette(c("blue", "white", "red"))(100),
-  breaks = seq(-1, 1, length.out = 101),
+  #breaks = seq(-1, 1, length.out = 101),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
   angle_col = 90,
   annotation_col = ann,
-  annotation_colors = list( Treatment = Treatment_colors[c("Ctrl", "TAM")],
-                            Sex = Sex_colors),
+  annotation_colors = list( Treatment = Treatment_colors[c("Ctrl", "TAM")],Sex = Sex_colors),
   display_numbers = FALSE,
   show_rownames = TRUE,
   show_colnames = TRUE
 )
 
-ggsave(
-  filename = paste0(ExpID, "_BA_Correlation_Animals_values.png"),
-  plot = p_cor,
-  path = output_pwd,
-  width = 8,
-  height = 5,
-  dpi = 300,
-  bg = "white"
-)
+ggsave( filename = paste0(ExpID, "_BA_Correlation_Animals_values_Scale1.png"),
+  plot = p_cor, path = output_pwd,width = 8,height = 5,
+  dpi = 300,bg = "white")
 
 ba_sd <- apply(d_mat_pearson, 1, sd, na.rm = TRUE)
 d_mat_cor <- d_mat_pearson[ba_sd > 0, , drop = FALSE]
@@ -368,7 +310,7 @@ p_cor <- pheatmap(
   fontsize_col = 9,
   fontsize_number = 8,
   color = colorRampPalette(c("blue", "white", "red"))(100),
-  breaks = seq(-1, 1, length.out = 101),
+ # breaks = seq(-1, 1, length.out = 101),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
@@ -378,31 +320,16 @@ p_cor <- pheatmap(
   show_colnames = TRUE
 )
 
-ggsave(
-  filename = paste0(ExpID, "_BA_Correlation_Parameters_values.png"),
-  plot = p_cor,
-  path = output_pwd,
-  width = 8,
-  height = 5,
-  dpi = 300,
-  bg = "white"
-)
+ggsave( filename = paste0(ExpID, "_BA_Correlation_Parameters_values_scale1.png"),
+  plot = p_cor, path = output_pwd,width = 8,  height = 5,  dpi = 300, bg = "white")
 
 
-# Z score scaled heatmap - Bile Acids ------------------------------------
-
+# Z score scaled heatmap Bile Acids -----
 d_scaled <- t(scale(t(d_mat)))
 
 
-# Effect size type wie bei Exigo
 stats <- stats %>%
-  mutate(
-    effect_size_type = factor(
-      effect_size_type,
-      levels = c("standardized model effect", "NA")
-    )
-  )
-
+  mutate( effect_size_type = factor(effect_size_type, levels = c("standardized model effect", "GMR","cen2way not performed")))
 
 # Sort parameters: first by effect size type,
 # then by adjusted Treatment p-value
@@ -416,29 +343,14 @@ p_order <- stats %>%
 
 p_order <- intersect(p_order, rownames(d_scaled))
 
-
-ann$Treatment <- factor(
-  ann$Treatment,
-  levels = c("Ctrl", "TAM")
-)
-
-ann$Sex <- factor(
-  ann$Sex,
-  levels = c("female", "male")
-)
-
-column_order <- order(
-  ann$Treatment,
-  ann$Sex
-)
-
+ann$Treatment <- factor(ann$Treatment,levels = c("Ctrl", "TAM"))
+ann$Sex <- factor(ann$Sex,levels = c("female", "male"))
+column_order <- order(ann$Treatment,ann$Sex)
 
 # Row annotation: adjusted p-value categories
 row_annot <- stats %>%
   select(BA, adj_p_Treatment) %>%
-  mutate(
-    adj.p = cut(
-      adj_p_Treatment,
+  mutate( adj.p = cut(adj_p_Treatment,
       breaks = c(
         -Inf,
         0.0001,
@@ -461,50 +373,24 @@ row_annot <- stats %>%
   tibble::column_to_rownames("BA")
 
 row_annot$adj.p <- as.character(row_annot$adj.p)
-
 row_annot$adj.p[is.na(row_annot$adj.p)] <- "NA"
-
-row_annot$adj.p <- factor(
-  row_annot$adj.p,
-  levels = c(
+row_annot$adj.p <- factor(row_annot$adj.p,levels = c(
     "<0.0001",
     "0.0001–0.001",
     "0.001–0.01",
     "0.01–0.05",
     ">0.05",
-    "NA"
-  )
+    "NA")
 )
 
 
 # Apply column and row order
-d_scaled <- d_scaled[
-  ,
-  column_order,
-  drop = FALSE
-]
-
-ann <- ann[
-  column_order,
-  ,
-  drop = FALSE
-]
-
-d_scaled <- d_scaled[
-  p_order,
-  ,
-  drop = FALSE
-]
-
-row_annot <- row_annot[
-  p_order,
-  ,
-  drop = FALSE
-]
-
+d_scaled <- d_scaled[ ,  column_order,  drop = FALSE]
+ann <- ann[column_order, ,  drop = FALSE]
+d_scaled <- d_scaled[ p_order,  ,  drop = FALSE]
+row_annot <- row_annot[p_order,  , drop = FALSE]
 
 # Censoring information for bile acids -------------------------------
-
 cens_cols <- paste0(param_list, "_censored")
 direction_cols <- paste0(param_list, "_direction")
 
@@ -536,46 +422,23 @@ rownames(direction_mat) <- param_list
 
 # Reorder censoring information in exactly the same way
 # as the scaled data
-cens_mat <- cens_mat[
-  p_order,
-  column_order,
-  drop = FALSE
-]
+cens_mat <- cens_mat[p_order,column_order,drop = FALSE]
 
-direction_mat <- direction_mat[
-  p_order,
-  column_order,
-  drop = FALSE
-]
-
+direction_mat <- direction_mat[ p_order,column_order, drop = FALSE]
 
 # Identify censored values
 below_detection <- cens_mat == TRUE & direction_mat == "<"
 above_detection <- cens_mat == TRUE & direction_mat == ">"
 
-
-# Replace censored values ONLY for visualization
+#Replace censored values ONLY for visualization
 d_scaled[below_detection] <- -4
 d_scaled[above_detection] <- 4
 
+#Heatmap colour scale
+heatmap_colors <- c("#FFF5CC",colorRampPalette( c("#FFE699", "orange", "red") )(98),"darkred")
+heatmap_breaks <- seq(-4,  4,  length.out = length(heatmap_colors) + 1)
 
-# Heatmap colour scale
-heatmap_colors <- c(
-  "#FFF5CC",
-  colorRampPalette(
-    c("#FFE699", "orange", "red")
-  )(98),
-  "darkred"
-)
-
-heatmap_breaks <- seq(
-  -4,
-  4,
-  length.out = length(heatmap_colors) + 1
-)
-
-
-# p-value annotation colours
+#p-value annotation colours
 p_color_list <- c(
   "<0.0001" = "darkgreen",
   "0.0001–0.001" = "forestgreen",
@@ -586,8 +449,7 @@ p_color_list <- c(
 )
 
 
-# Z score scaled Bile Acid heatmap -------------------------------------
-
+## Plot heatmap zscaled -----
 d_s <- pheatmap(
   d_scaled,
   cluster_rows = FALSE,
@@ -601,11 +463,7 @@ d_s <- pheatmap(
   annotation_row = row_annot,
   color = heatmap_colors,
   breaks = heatmap_breaks,
-  annotation_colors = list(
-    Treatment = Treatment_colors[c("Ctrl", "TAM")],
-    Sex = Sex_colors,
-    adj.p = p_color_list
-  ),
+  annotation_colors = list( Treatment = Treatment_colors[c("Ctrl", "TAM")],  Sex = Sex_colors,adj.p = p_color_list  ),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
@@ -615,26 +473,13 @@ d_s <- pheatmap(
   number_format = "%.3f",
   show_colnames = FALSE,
   legend_breaks = c(-4, -2, 0, 2, 4),
-  legend_labels = c(
-    "Below LOD",
-    "-2",
-    "0",
-    "2",
-    "Above ULOQ"
-  )
+  legend_labels = c("Below LOD","-2", "0","2",  "Above ULOQ")
 )
 
-ggsave(
-  filename = paste0(ExpID, "_BA_scaled.png"),
-  plot = d_s,
-  path = output_pwd,
-  width = 6,
-  height = 5,
-  dpi = 300,
-  bg = "white"
-)
-# Effect size plot --------------------------------------------------------
+ggsave( filename = paste0(ExpID, "_BA_scaled.png"),
+  plot = d_s, path = output_pwd,width = 6,  height = 5, dpi = 300,  bg = "white")
 
+# Effect size plot -----
 stats_eff_size <- stats %>%
   filter(!is.na(effect_size)) %>%
   mutate(BA = factor(BA, levels = rev(p_order)))
@@ -652,9 +497,21 @@ p_lm <- ggplot(stats_lm, aes(x = effect_size, y = BA)) +
 
 ggsave(p_lm, file = paste0(ExpID, "_BA_Effect_size_LM.png"), dpi = 300, width = 5, height = 3, path = output_pwd)
 
+stats_gmr <- stats_eff_size %>%
+  filter(effect_size_type == "GMR")
 
-# PCA ----------------------------------------------------------------------
+p_gmr <- ggplot(stats_gmr, aes(x = effect_size, y = BA)) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_errorbar(aes(xmin = effect_CI_low, xmax = effect_CI_high), height = 0) +
+  geom_point(size = 2) +
+  scale_x_log10() +
+  scale_y_discrete(limits = rev(p_order)) +
+  labs(x = "Geometric Mean TAM/Ctrl", y = NULL) +
+  theme_classic()
 
+ggsave(p_gmr, file = paste0(ExpID, "_BA_Effect_size_GMR.png"), dpi = 300, width = 5, height = 3, path = output_pwd)
+
+# PCA --------
 pca_data <- d1 %>%
   filter(Timepoint == "11") %>%
   select(Animal, Sex, Treatment, all_of(param_list),-GCDCA,-GDCA) %>%
@@ -675,7 +532,10 @@ f3 <- fviz_cos2(data.pca, choice = "var", axes = 1:2)
 f4 <- fviz_pca_var(data.pca, col.var = "cos2", gradient.cols = c("black", "orange", "green"), repel = TRUE)
 f5 <- fviz_contrib(data.pca, choice = "var", axes = 1, top = 15, sort.val = c("desc"))
 
-f6 <- autoplot(data.pca, data = pca_data, x = 1, y = 2, size = 3, fill = "Treatment", color = "Treatment", shape = "Sex") +
+f6 <- autoplot(data.pca, data = pca_data, x = 1, y = 2, size = 3, fill = "Treatment", 
+               color = "Treatment", shape = "Sex",frame = TRUE,
+               frame.type = "norm",
+               frame.level = 0.95) +
   theme_bw() +
   theme_classic() +
   ggtitle("Principal Component Analysis") +
@@ -692,106 +552,39 @@ ggsave(f5, path = output_pwd, file = paste0(ExpID, "_BA_PCA_Variable_Contributio
 ggsave(f6, path = output_pwd, file = paste0(ExpID, "_BA_PCA_Scores.png"), dpi = 300, width = 9, height = 7)
 
 
-# Save plotting data ------------------------------------------------------
 
-saveRDS(
-  list(
-    data = d1 %>% filter(Timepoint == "11"),
-    statistics = stats,
-    PCA = data.pca
-  ),
-  file = file.path(output_pwd, paste0(ExpID, "_BA_TP11_PlottingData.rds"))
-)
-
-cat("\nBile acid plots, heatmaps, effect size plot and PCA saved to:\n", output_pwd, "\n")
-
-
-# Volcano plot for Bile Acids -----
-# Volcano plot based on the Treatment comparison at TP11.
-# Fold change is calculated directly from the observed group means.
+#Volcano plot Bile Acids -----
 # log2FC = log2(mean TAM / mean Ctrl).
-# Significance is based on the FDR-adjusted Treatment p-value.
 
 volcano_data <- stats %>%
-  mutate(
-    FC = mean_TAM / mean_Ctrl,
+  mutate( FC = mean_TAM / mean_Ctrl,
     log2FC = log2(FC),
     negLog10FDR = -log10(adj_p_Treatment),
     direction = case_when(
       adj_p_Treatment < 0.05 & log2FC < 0 ~ "TAM lower",
       adj_p_Treatment < 0.05 & log2FC > 0 ~ "TAM higher",
-      TRUE ~ "Not significant"
-    ),
+      TRUE ~ "Not significant"),
     significant = !is.na(adj_p_Treatment) & adj_p_Treatment < 0.05,
-    Metabolite = BA
-  ) %>%
-  filter(
-    is.finite(log2FC),
-    is.finite(negLog10FDR)
-  )
+    Metabolite = BA ) %>%
+  filter( is.finite(log2FC),is.finite(negLog10FDR))
 
-p_volcano <- ggplot(
-  volcano_data,
-  aes(x = log2FC, y = negLog10FDR)
-) +
-  geom_point(
-    aes(fill = direction),
-    alpha = 0.5,
-    size = 3,
-    stroke = 0.5,
-    position = position_jitter(width = 0.08),
-    shape = 21,
-    color = "black"
-  ) +
-  scale_fill_manual(
-    values = c(
-      "TAM lower" = "blue",
-      "Not significant" = "grey60",
-      "TAM higher" = "firebrick"
-    )
-  ) +
-  geom_vline(
-    xintercept = c(-0.5, 0.5),
-    linetype = "dashed",
-    color = "grey80"
-  ) +
-  geom_hline(
-    yintercept = -log10(0.05),
-    linetype = "dashed",
-    color = "grey80"
-  ) +
-  labs(
-    title = paste0("Volcano plot - Treatment at TP11"),
+p_volcano <- ggplot(volcano_data, aes(x = log2FC, y = negLog10FDR)) +
+  geom_point( aes(fill = direction),alpha = 0.5,  size = 3,
+    stroke = 0.5,  position = position_jitter(width = 0.08),shape = 21, color = "black" ) +
+  scale_fill_manual(values = c( "TAM lower" = "blue", "Not significant" = "grey60", "TAM higher" = "firebrick") ) +
+  geom_vline( xintercept = c(-0.5, 0.5),linetype = "dashed",color = "grey80") +
+  geom_hline( yintercept = -log10(0.05),linetype = "dashed",color = "grey80") +
+  labs(title = paste0("Volcano plot - Treatment at TP11"),
     x = expression(paste("log"[2], " FC (TAM / Ctrl)")),
-    y = expression(paste("-log"[10], "(adj.p.value)"))
-  ) +
+    y = expression(paste("-log"[10], "(adj.p.value)"))) +
   theme_classic() +
-  theme(
-    panel.grid = element_line(
-      color = "grey90",
-      linewidth = 0.1
-    )
-  ) +
-  ggrepel::geom_text_repel(
-    data = volcano_data %>%
-      filter(significant == TRUE),
-    aes(label = Metabolite),
-    size = 4,
-    max.overlaps = 20
-  ) +
-  coord_cartesian(
-    xlim = c(-4, 4),
-    ylim = c(0, 3)
-  )
+  theme(panel.grid = element_line(color = "grey90",linewidth = 0.1)) +
+  ggrepel::geom_text_repel( data = volcano_data %>% filter(significant == TRUE),
+    aes(label = Metabolite),size = 4, max.overlaps = 20 ) +
+  coord_cartesian(xlim = c(-4, 4),ylim = c(0, 3))
 
 print(p_volcano)
 
-ggsave(
-  plot = p_volcano,
-  filename = paste0(ExpID, "_BA_volcano.png"),
-  width = 6,
-  height = 9,
-  dpi = 300,
-  path = output_pwd
-)
+ggsave( plot = p_volcano, filename = paste0(ExpID, "_BA_volcano.png"),
+  width = 6,height = 9,  dpi = 300, path = output_pwd)
 

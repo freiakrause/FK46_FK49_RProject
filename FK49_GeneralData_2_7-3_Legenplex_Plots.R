@@ -412,7 +412,10 @@ f2<-fviz_pca_var(data.pca, col.var = "black")
 f3<-fviz_cos2(data.pca, choice = "var", axes = 1:2)
 f4<-fviz_pca_var(data.pca, col.var = "cos2", gradient.cols = c("black", "orange", "green"), repel = TRUE)
 f5<-fviz_contrib(data.pca, choice = "var", axes = 1, top = 15, sort.val = c("desc"))
-f6<-autoplot(data.pca, data = pca_data, x = 1, y = 2, size = 3, fill = "Treatment",color = "Treatment", shape = "Sex")+
+f6<-autoplot(data.pca, data = pca_data, x = 1, y = 2, size = 3, fill = "Treatment",
+             color = "Treatment", shape = "Sex",frame = TRUE,
+             frame.type = "norm",
+             frame.level = 0.95)+
   theme_bw()+ 
   theme_classic()+
   ggtitle("Principal Component Analysis")+ 

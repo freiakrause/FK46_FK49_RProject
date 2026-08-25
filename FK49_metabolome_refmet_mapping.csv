@@ -1,0 +1,643 @@
+dataset,original_name,refmet_name,main_class,refmet_id,status
+positive,(2S)-5-[Carbamimidoyl(methyl)amino]-2-(methylamino)pentanoic acid,-,-,-,MATCH
+positive,"(2R,3R,4S,5R)-2-Amino-3,4,5,6-tetrahydroxyhexanal",-,-,-,MATCH
+positive,Methyl L-argininate,-,-,-,MATCH
+positive,Ethyl lysine,-,-,-,MATCH
+positive,isoleucine glutamate,-,-,-,MATCH
+positive,N-(3-Aminopropyl)-N-methylcarbamic acid tert-butyl ester,-,-,-,MATCH
+positive,Benzoyl glucuronide (Benzoic acid),-,-,-,MATCH
+positive,epsilon-(gamma-Glutamyl)lysine,Epsilon-(gamma-Glutamyl)-lysine,Amino acids and peptides,RM0136244,MATCH
+positive,2-Hydrazinopyridine,-,-,-,MATCH
+positive,D-Histidine,D-Histidine,Amino acids and peptides,RM0027537,MATCH
+positive,Menadione bisulfite,-,-,-,MATCH
+positive,1-Methylpiperazine,1-Methylpiperazine,Piperazines,RM0171401,MATCH
+positive,Meldonium,-,-,-,MATCH
+positive,1-Piperideine,1-Piperideine,Hydropyridines,RM0136922,MATCH
+positive,"(1r,2s)-2-Aminocyclopentanecarboxylic acid",-,-,-,MATCH
+positive,Triethyl orthoformate,-,-,-,MATCH
+positive,Visnagin,Visnagin,Aromatic polyketides,RM0052858,MATCH
+positive,piperidine-1-carboxamide,-,-,-,MATCH
+positive,"Bis((hexahydro-4-methyl-1H-1,4-diazepin-1-yl)thiocarbonyl)disulfide",-,-,-,MATCH
+positive,Z-PP-CHO,-,-,-,MATCH
+positive,N(6)-Methyllysine,N(6)-Methyllysine,Amino acids and peptides,RM0020527,MATCH
+positive,6-[Ethyl-(3-isobutoxy-4-isopropylphenyl)amino]nicotinic acid,-,-,-,MATCH
+positive,6-{3-[(Pyridin-2-yl)disulfanyl]propanamido}hexanoic acid,-,-,-,MATCH
+positive,Methoxsalen,Methoxsalen,Coumarins,RM0186773,MATCH
+positive,4-(Dipropylsulfamoyl)-2-nitrobenzoic acid,-,-,-,MATCH
+positive,D-Ornithine,D-Ornithine,Amino acids and peptides,RM0136216,MATCH
+positive,N-Mononitrosopiperazine,-,-,-,MATCH
+positive,Trimethylolpropane,-,-,-,MATCH
+positive,"Pyrrole, 2-pentyl",-,-,-,MATCH
+positive,"10-Acetyl-3,7-dihydroxyphenoxazine",-,-,-,MATCH
+positive,1-[(5-Amino-5-carboxypentyl)amino]-1-deoxyfructose,Fructosyllysine,Amino acids and peptides,RM0137016,MATCH
+positive,Pentisomide,-,-,-,MATCH
+positive,THURFYL NICOTINATE,-,-,-,MATCH
+positive,Dibutylamine,N-Butylbutan-1-amine,Ornithine alkaloids,RM0204163,MATCH
+positive,Lumichrome,Lumichrome,Alloxazines and isoalloxazines,RM0118166,MATCH
+positive,Recainam,-,-,-,MATCH
+positive,3h-Adrenaline,-,-,-,MATCH
+positive,Spisulosine,Spisulosine,Sphingoid bases,RM0135476,MATCH
+positive,N-Lactoylphenylalanine,N-Lactoyl phenylalanine,Amino acids and peptides,RM0131640,MATCH
+positive,15d PGD2,"15-Deoxy-delta-12,14-PGD2",Eicosanoids,RM0140096,MATCH
+positive,N-Deschlorobenzoyl indomethacin,-,-,-,MATCH
+positive,2-Methylbutyroylcarnitine,CAR 4:0;2Me,Fatty esters,RM0154070,MATCH
+positive,Nicotinic acid,Nicotinic acid,Pyridine alkaloids,RM0156700,MATCH
+positive,N-Nitramido-N-phenylnitramide,-,-,-,MATCH
+positive,Amidephrine,-,-,-,MATCH
+positive,Cytosine-5-carboxylic acid,-,-,-,MATCH
+positive,Picolinamide,Picolinamide,Pyridine alkaloids,RM0156508,MATCH
+positive,Pantothenic acid,Pantothenic acid,Amino acids and peptides,RM0136730,MATCH
+positive,Oleamide,Oleamide,Fatty amides,RM0150636,MATCH
+positive,Spiroxamine,Spiroxamine,Ethers,RM0188397,MATCH
+positive,L-Threo-Sphingosine C-18,L-threo-Sphingosine,Sphingoid bases,RM0021449,MATCH
+positive,Fluoroacetamide,-,-,-,MATCH
+positive,"(2R,5S)-2-(6-Aminopurin-9-yl)-5-(methylsulfanylmethyl)oxolane-3,4-diol",-,-,-,MATCH
+positive,5-Methyl-1H-pyrazole-3-carboxylic acid,-,-,-,MATCH
+positive,2-Nitrophenol,-,-,-,MATCH
+positive,N1-Methyl-2-pyridone-5-carboxamide,N1-Methyl-2-pyridone-5-carboxamide,Pyridine alkaloids,RM0030027,MATCH
+positive,"2',3'-Didehydro-2',3'-dideoxyguanosine",-,-,-,MATCH
+positive,Swertiamarin,Swertiamarin,Isoprenoids,RM0201048,MATCH
+positive,6-Hydroxydopamine,6-Hydroxydopamine,Tyrosine alkaloids,RM0136112,MATCH
+positive,"2-(1-Phenylpropan-2-yl)-1,3,2-dioxazetidine",-,-,-,MATCH
+positive,Procainamide,Procainamide,Benzoic acids,RM0038652,MATCH
+positive,[(3-Methylbutyl)amino]acetic acid,-,-,-,MATCH
+positive,1-Octanethiol,-,-,-,MATCH
+positive,2-Hexenoylcarnitine,CAR 6:1,Fatty esters,RM0154208,MATCH
+positive,N-(4-Aminobenzoyl)-L-glutamic acid,4-Aminobenzoylglutamic acid,Amino acids and peptides,RM0131948,MATCH
+positive,Hexaminolevulinate,-,-,-,MATCH
+positive,(2S)-6-Amino-2-(hexanoylamino)hexanoic Acid,-,-,-,MATCH
+positive,Phenylalanylphenylalanine,Phe-Phe,Amino acids and peptides,RM0137544,MATCH
+positive,"Butanoic acid, 3-((2-((3R)-2-oxo-3-(2-(4-piperidinyl)ethyl)-1-piperidinyl)acetyl)amino)-, (3R)-",-,-,-,MATCH
+positive,Flunixin,Flunixin,Benzenes,RM0172008,MATCH
+positive,Amobarbital,Amobarbital,Pyrimidines,RM0204963,MATCH
+positive,Indicine-N-oxide,-,-,-,MATCH
+positive,"[1S-[1alpha,2alpha(Z),3alpha,4alpha]]-7-[3-[[2-[(Phenylamino)carbonyl]hydrazino]methyl]-7-oxabicyclo[2.2.1]hept-2-yl]-5-heptenoicacid",-,-,-,MATCH
+positive,9H-Purine-9-ol,-,-,-,MATCH
+positive,N-Acetylserotonin,N-Acetylserotonin,Tryptophan alkaloids,RM0136079,MATCH
+positive,Carbaryl,Carbaryl,Naphthalenes,RM0108907,MATCH
+positive,"3,5-Dihydroxyphenylglycine",-,-,-,MATCH
+positive,3-Nitrophenylhydrazine,-,-,-,MATCH
+positive,N4-Acetylcytidine,N4-Acetylcytidine,Pyrimidines,RM0136296,MATCH
+positive,Pimelylcarnitine,CAR DC7:0,Fatty esters,RM0153555,MATCH
+positive,Allopurinol riboside,Allopurinol riboside,Purines,RM0033363,MATCH
+positive,Procarbazine,Procarbazine,Benzamides,RM0108924,MATCH
+positive,11-Mercaptoundecanoic acid,11-Mercaptoundecanoic acid,Fatty acids,RM0228073,MATCH
+positive,Carbidopa,Carbidopa,Tyrosine alkaloids,RM0204111,MATCH
+positive,"N,N-Diethyl-1-methylsulfinylformamide",-,-,-,MATCH
+positive,Creatinine bicarbonate,-,-,-,MATCH
+positive,Riboflavin,Riboflavin,Alloxazines and isoalloxazines,RM0135919,MATCH
+positive,"N2,N2-Dimethylguanosine","N2,N2-Dimethylguanosine",Purines,RM0136278,MATCH
+positive,7-(2-Hydroxyethyl)guanine,-,-,-,MATCH
+positive,(3-Aminophenyl) nitrite,-,-,-,MATCH
+positive,3-Methylglutarylcarnitine,CAR DC5:0;3Me,Fatty esters,RM0154056,MATCH
+positive,"2-(3,4-Dihydro-2,2-dimethyl-6-nitro-2H-1,4-benzoxazin-4-yl)pyridine N-oxide",-,-,-,MATCH
+positive,Etifoxine,-,-,-,MATCH
+positive,3-Methylthymidine,-,-,-,MATCH
+positive,Lersivirine,Lersivirine,Benzenes,RM0226825,MATCH
+positive,Tribufos,Tribufos,Organosulfur compounds,RM0200422,MATCH
+positive,Ecgonine methyl ester,Ecgonine methyl ester,Ornithine alkaloids,RM0204062,MATCH
+positive,Formycin,-,-,-,MATCH
+positive,5-(Cycloocten-1-yl)-5-ethyl-barbituric acid,-,-,-,MATCH
+positive,"1-[(2R,3R,4S,5R)-3,4-Dihydroxy-5-(hydroxymethyl)oxolan-2-yl]oxypyrimidin-2-one",-,-,-,MATCH
+positive,Diisopropanolamine,1-(2-hydroxypropylamino)propan-2-ol,Amines,RM0199938,MATCH
+positive,Adenine,Adenine,Purines,RM0049281,MATCH
+positive,PIPERIDIN-2-IMINE,-,-,-,MATCH
+positive,triacsin,-,-,-,MATCH
+positive,N-Lactoylleucine,N-Lactoyl leucine,Amino acids and peptides,RM0158158,MATCH
+positive,2-[(2R)-2-Aminopropyl]-5-hydroxybenzoic acid,-,-,-,MATCH
+positive,4-Methoxycinnamic acid,4-Methoxycinnamic acid,Phenylpropanoids,RM0136151,MATCH
+positive,Zolmitriptan,Zolmitriptan,Tryptophan alkaloids,RM0204106,MATCH
+positive,Val-Met,Val-Met,Amino acids and peptides,RM0137575,MATCH
+positive,Acefylline,-,-,-,MATCH
+positive,Metioprim,-,-,-,MATCH
+positive,Xanthosine,Xanthosine,Purines,RM0161017,MATCH
+positive,Xanthine,Xanthine,Purines,RM0135930,MATCH
+positive,2-Hydroxyisovalerylcarnitine,-,-,-,MATCH
+positive,N-Ethyl-N-(2-hydroxy-3-sulfopropyl)-3-toluidine,-,-,-,MATCH
+positive,Butylate,Butylate,Organosulfur compounds,RM0200429,MATCH
+positive,Nelarabine,Nelarabine,Purines,RM0224172,MATCH
+positive,Lysophosphatidylcholine,-,-,-,MATCH
+positive,Nicotinamide ribotide,Nicotinamide ribotide,Pyridine alkaloids,RM0135915,MATCH
+positive,Cycloate,Cycloate,Organosulfur compounds,RM0200427,MATCH
+positive,Tert-butyl N-[2-(prop-2-enamido)ethyl]carbamate,-,-,-,MATCH
+positive,Idrapril,-,-,-,MATCH
+positive,"4-(1,3-Benzothiazol-2-yl)-2-methylaniline",-,-,-,MATCH
+positive,1-Dodecanethiol,1-Dodecanethiol,Organosulfur compounds,RM0200415,MATCH
+positive,Thiochrome,Thiochrome,Pyrimidines,RM0228557,MATCH
+positive,"(2-Phenylacetyl) (2R)-2,5-diaminopentanoate",-,-,-,MATCH
+positive,"N,N,N-Trimethyl-L-alanyl-L-proline betaine","N,N,N-Trimethyl-alanylproline betaine",Amino acids and peptides,RM0002582,MATCH
+positive,2-Methylthiazolidine-4-carboxylic acid,2-Methylthiazolidine-4-carboxylic acid,Amino acids and peptides,RM0188775,MATCH
+positive,3-Hydroxy-11-norcytisine,-,-,-,MATCH
+positive,3-Hydroxybutyrylcarnitine,CAR 4:0;3OH,Fatty esters,RM0154200,MATCH
+positive,XANTHOPTERIN,Xanthopterin,Pterins,RM0002366,MATCH
+positive,Carbimazole,Carbimazole,Azoles,RM0200137,MATCH
+positive,Alaptide,-,-,-,MATCH
+positive,"2,2'-Anhydrocytidine",Ancitabine,Ethers,RM0050128,MATCH
+positive,2-Amino-3-methyl-1-butanol,Valinol,Amines,RM0224296,MATCH
+positive,Biopterin,Biopterin,Pterins,RM0135953,MATCH
+positive,Hexobarbital,Hexobarbital,Pyrimidines,RM0204965,MATCH
+positive,N6-Succinyl Adenosine,Succinyladenosine,Purines,RM0136023,MATCH
+positive,2-Methyl-2-phenylsuccinimide,-,-,-,MATCH
+positive,Benzaldehyde,Benzaldehyde,Benzoic acids,RM0020356,MATCH
+positive,Isoindoline,Isoindoline,Pseudoalkaloids,RM0228531,MATCH
+positive,Ethyl 3-aminobenzoate,Tricaine,Benzoic acids,RM0204941,MATCH
+positive,Phenylethylmalonamide,Phenylethylmalonamide,Phenylpropylamines,RM0060462,MATCH
+positive,Bunitrolol,-,-,-,MATCH
+positive,L-Norleucine,Norleucine,Amino acids and peptides,RM0134973,MATCH
+positive,Phenethylamine glucuronide,-,-,-,MATCH
+positive,Suberylglycine,Suberylglycine,Amino acids and peptides,RM0031731,MATCH
+positive,3-(4-Hydroxy-3-methoxyphenyl)-2-methylpropionic acid,-,-,-,MATCH
+positive,Phenidone,-,-,-,MATCH
+positive,Azepine,-,-,-,MATCH
+positive,Allobarbital,-,-,-,MATCH
+positive,Noroxyhydrastinine,Noroxyhydrastinine,Tyrosine alkaloids,RM0200899,MATCH
+positive,Cyclopentylamine,-,-,-,MATCH
+positive,4-Hydroxy-benzamidine,-,-,-,MATCH
+positive,2-Guanidinobutanoic acid,-,-,-,MATCH
+positive,"2-Aminobicyclo[3.1.0]hexane-2,6-dicarboxylic acid",-,-,-,MATCH
+positive,3-Pyridylacetic acid,3-Pyridylacetic acid,Pyridine alkaloids,RM0108069,MATCH
+positive,pyramid,-,-,-,MATCH
+positive,Uric acid,Uric acid,Purines,RM0160856,MATCH
+positive,Allantoin,Allantoin,Cyclic ureas,RM0118303,MATCH
+positive,Mepirizole,-,-,-,MATCH
+positive,thiazoline,-,-,-,MATCH
+positive,Thiazolidine-4-carboxylic acid,Thioproline,Amino acids and peptides,RM0013708,MATCH
+positive,N-(2-Aminoethyl)maleimide,-,-,-,MATCH
+positive,beta-Hydroxy-gamma-trimethylaminobutyric acid,-,-,-,MATCH
+positive,2-(5-Fluoropentyl)-2-methylmalonic acid,-,-,-,MATCH
+positive,4-Hydroxyantipyrine,-,-,-,MATCH
+positive,"4,4'-Bipyridine","4,4'-Bipyridine",Pyridines,RM0200330,MATCH
+positive,Indoleacrylic acid,Indoleacrylic acid,Tryptophan alkaloids,RM0135983,MATCH
+positive,"1,5-Naphthalenediamine","1,5-Naphthalenediamine",Naphthalenes,RM0005492,MATCH
+positive,1-Hydroxyisoquinoline,1(2H)-Isoquinolinone,Isoquinolones,RM0224290,MATCH
+positive,"21,22,23,24-Tetrahydroporphyrin",-,-,-,MATCH
+positive,"Glycine, L-g-glutamyl-L-cysteinyl-, 3-methyl ester",-,-,-,MATCH
+positive,Pent-2-enoic acid,-,-,-,MATCH
+positive,"D-Erythro-7,8-dihydrobiopterin",-,-,-,MATCH
+positive,"1,1'-(1,8-Dioxo-1,8-octanediyl)bis-2,5-pyrrolidinedione",-,-,-,MATCH
+positive,2-Butylhydroquinone,-,-,-,MATCH
+positive,tetrahydrothiazine,-,-,-,MATCH
+positive,L-Methionine,Methionine,Amino acids and peptides,RM0161726,MATCH
+positive,9-Deazaguanine,-,-,-,MATCH
+positive,1-Pentanesulfonic acid,-,-,-,MATCH
+positive,1-Hydroxybenzotriazole,1-Hydroxybenzotriazole,Benzotriazoles,RM0200227,MATCH
+positive,Hydrazinonicotinamide,-,-,-,MATCH
+positive,Tert-Butyl carbamate,-,-,-,MATCH
+positive,Boc-L-cysteine,-,-,-,MATCH
+positive,1-Deoxy-1-morpholino-D-fructose,1-Deoxy-1-morpholinofructose,Monosaccharides,RM0226655,MATCH
+positive,Aminopropanol,Aminopropanol,Amines,RM0003963,MATCH
+positive,4-Acetamidobutanoic acid,4-Acetamidobutanoic acid,Amino acids and peptides,RM0042346,MATCH
+positive,1-Ethylaziridine,-,-,-,MATCH
+positive,Cytarabine,Cytarabine,Pyrimidines,RM0160347,MATCH
+positive,Bisaramil,-,-,-,MATCH
+positive,bicyclol,-,-,-,MATCH
+positive,Succinaldehyde,-,-,-,MATCH
+positive,2-Aminoisobutyric acid,Aminoisobutyric acid,Fatty acids,RM0139553,MATCH
+positive,2-Pyrrolidinone,2-Pyrrolidinone,Pyrrolidones,RM0013101,MATCH
+positive,1-Methyladenosine,1-Methyladenosine,Purines,RM0156409,MATCH
+positive,(1R)-1-Amino-2-sulfanylethanesulfinic acid,-,-,-,MATCH
+positive,N-(2-Hydroxyethyl)acrylamide,-,-,-,MATCH
+positive,Butyronitrile,-,-,-,MATCH
+positive,1-Methylcytosine,-,-,-,MATCH
+positive,"2-(2,4-Dimethylphenyl)indan-1,3-dione",-,-,-,MATCH
+positive,"N-(2,3-Dihydroxypropyl)valine","N-(2,3-Dihydroxypropyl)valine",Amino acids and peptides,RM0224442,MATCH
+positive,Aldicarb sulfoxide,Aldicarb sulfoxide,Organosulfur compounds,RM0188648,MATCH
+positive,beta-naphthoflavone,-,-,-,MATCH
+positive,Indirubin-3'-monoxime,-,-,-,MATCH
+positive,N(6)-(1-Carboxyethyl)-L-lysine,N(6)-(1-Carboxyethyl)-lysine,Amino acids and peptides,RM0228160,MATCH
+positive,Formyllysine,-,-,-,MATCH
+positive,4-Hydroxybenzaldehyde,4-Hydroxybenzaldehyde,Benzaldehydes,RM0042689,MATCH
+positive,Isocoumarin,-,-,-,MATCH
+positive,4-Hydroxycinnamic acid,cis-p-Coumaric acid,Phenylpropanoids,RM0136626,MATCH
+positive,4-Aminoacetophenone,4-Aminoacetophenone,Carbonyl compounds,RM0200046,MATCH
+positive,"2-Amino-2-methyl-1,3-propanediol",-,-,-,MATCH
+positive,"2-Oxazolidinone, 3-[[(5-nitro-2-furanyl)methylene]amino]-",-,-,-,MATCH
+positive,Pentanamide,Pentanamide,Fatty amides,RM0153851,MATCH
+positive,"Amino (2S)-2,6-diaminohexanoate",-,-,-,MATCH
+positive,p-Hydroxyfelbamate,p-Hydroxyfelbamate,Phenols,RM0020552,MATCH
+positive,Ribothymidine,Ribothymidine,Pyrimidines,RM0138932,MATCH
+positive,gamma-Glutamylacetamide,-,-,-,MATCH
+positive,3-Hydroxyhalazepam,-,-,-,MATCH
+positive,Temazepam,Temazepam,Anthranilic acid alkaloids,RM0031732,MATCH
+positive,Perflexane,Perflexane,Organohalogen compounds,RM0226824,MATCH
+positive,"{[5-(5-Nitro-2-furyl)-1,3,4-oxadiazol-2-YL]thio}acetic acid",-,-,-,MATCH
+positive,"1,1,1,3,3-Pentafluoropropane",-,-,-,MATCH
+positive,2-Butanethiol,-,-,-,MATCH
+positive,4-Aminophenyl phosphate,-,-,-,MATCH
+positive,Taurocyamine,Taurocyamine,Sulfonic acids,RM0136238,MATCH
+positive,2-Hydroxy-3-(1H-imidazol-5-yl)propanoic acid,-,-,-,MATCH
+positive,"(2R,4R)-4-Aminopyrrolidine-2,4-dicarboxylic acid",-,-,-,MATCH
+positive,S-Nitrosomercaptoethanol,-,-,-,MATCH
+positive,4-Chloroaniline,4-Chloroaniline,Anilines,RM0037704,MATCH
+positive,2-Amino-4-chloropyridine,-,-,-,MATCH
+positive,"Naphth(1,2-b)oxirene",-,-,-,MATCH
+positive,Bisphenol,Bisphenol A,Benzenes,RM0050341,MATCH
+positive,Thiacloprid,Thiacloprid,Pyridines,RM0118050,MATCH
+positive,Dioxybenzone,Dioxybenzone,Benzenes,RM0012737,MATCH
+positive,Serine methyl ester,-,-,-,MATCH
+positive,1-Aminocyclopropanol,-,-,-,MATCH
+positive,"2,3-Butanedione monoxime","2,3-Butanedione monoxime",Organonitrogen compounds,RM0021630,MATCH
+positive,Morph,-,-,-,MATCH
+positive,Ergothioneine,Ergothioneine,Amino acids and peptides,RM0132145,MATCH
+positive,3-Aminobenzanthrone,-,-,-,MATCH
+positive,Pirprofen,-,-,-,MATCH
+positive,6-Nitrochrysene,-,-,-,MATCH
+positive,Guanidoacetic acid,Guanidoacetic acid,Amino acids and peptides,RM0040234,MATCH
+positive,N-Methylglucosamine,-,-,-,MATCH
+positive,Pegorgotein,-,-,-,MATCH
+positive,Thioacetamide-S-oxide,-,-,-,MATCH
+positive,Hypotaurine,Hypotaurine,Sulfinic acids,RM0136027,MATCH
+positive,"2-Amino-1,3-propanediol",-,-,-,MATCH
+positive,Ala-Ala-Ala,Ala-Ala-Ala,Amino acids and peptides,RM0039326,MATCH
+positive,Ethylbenzene,Ethylbenzene,Benzenes,RM0021425,MATCH
+positive,Isochroman,-,-,-,MATCH
+positive,Cumene hydroperoxide,-,-,-,MATCH
+positive,Citraconic acid,Citraconic acid,Fatty acids,RM0153097,MATCH
+positive,Alanine acetate,-,-,-,MATCH
+positive,Oxazine,Oxazine,Oxazines,RM0224385,MATCH
+positive,o-Acetylhydroxylamine,-,-,-,MATCH
+positive,2-Oxoarginine,2-Oxoarginine,Keto acids,RM0042323,MATCH
+positive,"10,13-Dimethyl-7-sulfanylspiro[2,6,7,8,9,11,12,14,15,16-decahydro-1H-cyclopenta[a]phenanthrene-17,5'-oxolane]-2',3-dione",-,-,-,MATCH
+positive,TRIPHENYLMETHANE,-,-,-,MATCH
+positive,Firocoxib,-,-,-,MATCH
+positive,Guanidinosuccinic acid,Guanidinosuccinic acid,Guanidines,RM0132195,MATCH
+positive,4-Methylumbelliferylguanidinobenzoate,-,-,-,MATCH
+positive,N'-[(4-Oxo-4H-chromen-3-yl)methylene]nicotinohydrazide,-,-,-,MATCH
+positive,N-(2-Hydroxyethyl)ethylenediaminetriacetic acid,-,-,-,MATCH
+positive,Glycylsarcosine,Glycylsarcosine,Amino acids and peptides,RM0188778,MATCH
+positive,Aldehydo-ascarylose,-,-,-,MATCH
+positive,Glutathione,Glutathione,Amino acids and peptides,RM0135889,MATCH
+positive,Kresoxim-Methyl,Kresoxim-Methyl,Phenols,RM0188444,MATCH
+positive,"2-Methyl-1,1,4-trioxo-N-(2-pyridinyl)-3H-1$l^{6},2-benzothiazine-3-carboxamide",-,-,-,MATCH
+positive,Fleroxacin N-oxide,-,-,-,MATCH
+positive,S-Adenosylhomocysteine,S-Adenosylhomocysteine,Purines,RM0136025,MATCH
+positive,5C-aglycone,5C-Aglycone,Quinones and hydroquinones,RM0027626,MATCH
+positive,Methyl(acetoxymethyl)nitrosamine,-,-,-,MATCH
+positive,methyl 4-mercaptobutyrimidate,-,-,-,MATCH
+positive,Tryptophan 2-C-mannoside,alpha-C-Mannosyltryptophan,Indolyl carboxylic acids,RM0157976,MATCH
+positive,N(epsilon)-(Carboxymethyl)hydroxylysine,-,-,-,MATCH
+positive,N-Methyl-L-histidine,N-Methylhistidine,Amino acids and peptides,RM0137451,MATCH
+positive,Mitomycin,Mitomycin,Tryptophan alkaloids,RM0043085,MATCH
+positive,Bis-triazole,-,-,-,MATCH
+positive,2-Hydroxy-4-methylthiobutyric acid,2-Hydroxy-4-(methylthio)butanoic acid,Fatty acids,RM0153210,MATCH
+positive,N-Hydroxysuccinimide,-,-,-,MATCH
+positive,D-Aspartic acid,D-Aspartic acid,Amino acids and peptides,RM0042889,MATCH
+positive,trifluoroacetyl-l-lysyl-l-alaninanilide,-,-,-,MATCH
+positive,TETRAHYDROURIDINE,-,-,-,MATCH
+positive,Homocitrulline,Homocitrulline,Amino acids and peptides,RM0138931,MATCH
+positive,rac S 33138,-,-,-,MATCH
+positive,alpha-AMINO-3-HYDROXY-5-METHYL-4-ISOXAZOLEPROPIONIC ACID,Ampa,Amino acids and peptides,RM0137131,MATCH
+positive,(+/-)-(E)-Methyl-2-[(E)-hydroxyimino]-5-nitro-6-methoxy-3-hexeneamide,-,-,-,MATCH
+positive,"4-[(2R,5R)-5-(6-Aminopurin-9-yl)-3,4-dihydroxyoxolan-2-yl]butanamide",-,-,-,MATCH
+positive,"Carbamoyl (2R)-2,5-diaminopentanoate",-,-,-,MATCH
+positive,Oxiracetam,Oxiracetam,Amino acids and peptides,RM0226828,MATCH
+positive,"(2R,4R,5S,6S)-2,4-Dihydroxy-5-[(2-hydroxyacetyl)amino]-6-[(1S,2S)-1,2,3-trihydroxypropyl]oxane-2-carboxylic acid",-,-,-,MATCH
+positive,"(2R,3S,4R,5R,8R,9S,10R,11R)-5-Amino-1,2,3,4,8,9,10,11-octahydroxydodecane-6,7-dione",-,-,-,MATCH
+positive,Rubiadin,Rubiadin,Aromatic polyketides,RM0201001,MATCH
+positive,Cystine,Cystine,Amino acids and peptides,RM0135906,MATCH
+positive,Zipeprol,-,-,-,MATCH
+positive,Leteprinim,-,-,-,MATCH
+positive,"2,6-Diamino-5-hydroxyhexanoic acid",5-Hydroxylysine,Amino acids and peptides,RM0135950,MATCH
+positive,Neramexane,-,-,-,MATCH
+positive,Varenicline,Varenicline,Benzazepines,RM0205010,MATCH
+positive,Bethanidine,Bethanidine,Guanidines,RM0224242,MATCH
+positive,Hippuryl-L-arginine,-,-,-,MATCH
+positive,2-Octenoylcarnitine,CAR 8:1(2E),Fatty esters,RM0202187,MATCH
+positive,Forchlorfenuron,Forchlorfenuron,Pyridines,RM0188670,MATCH
+positive,"(2R,3R)-2-Aminooctadecane-1,3-diol",-,-,-,MATCH
+positive,Aminosalicylic Acid,Aminosalicylic acid,Benzenes,RM0161593,MATCH
+positive,"5-Isoxazoleacetic acid, 4,5-dihydro-3-(4-hydroxyphenyl)-, methyl ester",-,-,-,MATCH
+positive,Uracil,Uracil,Pyrimidines,RM0135934,MATCH
+positive,Isopilocarpinic acid,-,-,-,MATCH
+positive,Glutarylglycine,Glutarylglycine,Amino acids and peptides,RM0135970,MATCH
+positive,3-Hydroxyhexanoylcarnitine,CAR 6:0;3OH,Fatty esters,RM0154061,MATCH
+positive,8-Aminoguanosine,-,-,-,MATCH
+positive,Celgosivir,-,-,-,MATCH
+positive,delta-Guanidinovaleric acid,DGVA,Guanidines,RM0021622,MATCH
+positive,"9,9-Dimethyl-1-(sulfinylamino)decane",-,-,-,MATCH
+positive,4-Pyridylethylmercaptan,-,-,-,MATCH
+positive,2-Cyanohept-2-enoic acid,-,-,-,MATCH
+positive,"8-Hydroxy-3-methyl-3,4-dihydrotetraphene-1,7,12(2H)-trione",-,-,-,MATCH
+positive,Nitracrine,-,-,-,MATCH
+positive,Amoxapine,Amoxapine,Dibenzoxazepines,RM0200246,MATCH
+positive,"10H-Pyrido(3,2-b)(1,4)benzothiazine, 10-(2-piperidinoethyl)-",-,-,-,MATCH
+positive,7-[(2-Benzyl-3-sulfanylpropanoyl)amino]heptanoic acid,-,-,-,MATCH
+positive,"(2R,3S)-Epoxiconazole",-,-,-,MATCH
+positive,Glycyl-prolyl-glutamic acid,Gly-Pro-Glu,Amino acids and peptides,RM0130677,MATCH
+positive,"1-Hydroxy-2,2,5,5-tetramethylpyrrolidine-3-carboxylic acid",-,-,-,MATCH
+positive,"(1r,3r)-1-Aminocyclopentane-1,3-dicarboxylic acid",-,-,-,MATCH
+positive,N2-Methylguanine,N2-Methylguanine,Purines,RM0188813,MATCH
+positive,RESAZURIN,Resazurin,Benzoxazines,RM0118014,MATCH
+positive,alpha-Hydroxymetoprolol,alpha-Hydroxymetoprolol,Phenols,RM0021600,MATCH
+positive,"(1R,7S,13S,15S)-2,15-Dihydroxy-7-methyl-6-oxabicyclo[11.3.0]hexadeca-3,11-dien-5-one",-,-,-,MATCH
+positive,"(1R,4R,5S,6R)-4-Amino-2-oxabicyclo[3.1.0]hexane-4,6-dicarboxylic acid",-,-,-,MATCH
+positive,Methyl gallate,Gallic acid methyl ester,Benzoic acids,RM0199400,MATCH
+positive,Azetirelin,-,-,-,MATCH
+positive,Etimizol,-,-,-,MATCH
+positive,3[N-Morpholino]propane sulfonic acid,3-(N-morpholino)propanesulfonic acid,Morpholines,RM0200301,MATCH
+positive,"(3S,8As)-7-hydroxy-3-(hydroxymethyl)-2,3,6,7,8,8a-hexahydropyrrolo[1,2-a]pyrazine-1,4-dione",-,-,-,MATCH
+positive,N-[(3s)-2-Oxotetrahydrofuran-3-Yl]butanamide,N-Butyryl-L-homoserine lactone,Fatty amides,RM0137399,MATCH
+positive,ISOVALERYLUREA,-,-,-,MATCH
+positive,TRIAZIQUONE,-,-,-,MATCH
+positive,1-(4-Methyl-1H-pyrazol-5-yl)piperidine,-,-,-,MATCH
+positive,1-Naphthyl isocyanate,-,-,-,MATCH
+positive,1-Nitrosopiperazine,-,-,-,MATCH
+positive,2-[(3-Chlorophenyl)diazenyl]acetonitrile,-,-,-,MATCH
+positive,Divinyl sulfone,-,-,-,MATCH
+positive,N-(2-Amino-2-oxoethyl)-2-methylprop-2-enamide,-,-,-,MATCH
+positive,VASICINONE,Vasicinone,Benzodiazines,RM0118326,MATCH
+positive,Diethyldithiophosphate,Diethyldithiophosphate,Organic dithiophosphoric acids,RM0171443,MATCH
+positive,Beta-Guanidinopropionic acid,3-Guanidinopropanoic acid,Guanidines,RM0020462,MATCH
+positive,5-Iodo-2-pyrimidinone-2'-deoxyribose,-,-,-,MATCH
+positive,Cochinchinenin,-,-,-,MATCH
+positive,Diazomethyl ketone,-,-,-,MATCH
+positive,"S-Methyl N,N-Diethylthiocarbamate",-,-,-,MATCH
+positive,Clobenpropit,Clobenpropit,Halobenzenes,RM0226692,MATCH
+positive,N(4)-Acetylsulfisoxazole,-,-,-,MATCH
+positive,"2,4-Bis(2-methoxyethoxy)-1,3,5-triazine",-,-,-,MATCH
+positive,2-Iminiopropanoate,-,-,-,MATCH
+positive,"[(2R,3S,4R,5R)-3,4,5,6-Tetrahydroxy-1-oxohexan-2-yl] (2S)-2-aminopropanoate",-,-,-,MATCH
+positive,"1,2,2-Trimethylpropyl dimethylphosphinate",-,-,-,MATCH
+positive,Secnidazole,Secnidazole,Azoles,RM0224244,MATCH
+positive,2-Methylthioadenosine,-,-,-,MATCH
+positive,2-Furancarboximidamide,-,-,-,MATCH
+positive,Diuron,Diuron,Benzenes,RM0036725,MATCH
+positive,"4-N-[1-(Dimethylamino)ethyl]benzene-1,4-diamine",-,-,-,MATCH
+positive,Cystemustine,-,-,-,MATCH
+positive,(2E)-3-[3-(sulfooxy)phenyl]prop-2-enoic acid,3-Hydroxycinnamate sulfate,Phenylpropanoids,RM0137491,MATCH
+positive,7-Hydroxyamoxapine,-,-,-,MATCH
+positive,Armillarisin,-,-,-,MATCH
+positive,"1H-Imidazole-1-ethanol, alpha-(1-aziridinylmethyl)-2-nitro-",-,-,-,MATCH
+positive,N8-Acetylspermidine,N8-Acetylspermidine,Ornithine alkaloids,RM0136169,MATCH
+positive,"2-Methoxy-1,3-benzenediol",-,-,-,MATCH
+positive,3-Butyl-1-hydroxy-1-(4-methylphenyl)sulfonylurea,-,-,-,MATCH
+positive,Malonylglycine,-,-,-,MATCH
+positive,Milacemide,-,-,-,MATCH
+positive,Pregabalin,Pregabalin,Amino acids and peptides,RM0158238,MATCH
+positive,"4,6-Bis(methylthio)hexanoic acid",-,-,-,MATCH
+positive,2-(2-Aminopropanylamino)-4-carbamoylbutyric acid,-,-,-,MATCH
+positive,Cytosine,Cytosine,Pyrimidines,RM0050550,MATCH
+positive,1-Pyrrolidineethanol,-,-,-,MATCH
+positive,o-Phenetidine,-,-,-,MATCH
+positive,8-Hydroxy-7-methylguanine,8-Hydroxy-7-methylguanine,Purines,RM0032970,MATCH
+positive,"Androsta-4,16-dien-3-one",-,-,-,MATCH
+positive,3-Hydroxynorvaline,3-Hydroxynorvaline,Amino acids and peptides,RM0016278,MATCH
+positive,Dihydroxyethyldithiocarbamate,-,-,-,MATCH
+positive,"Phenazine-2,3-diamine",-,-,-,MATCH
+positive,"4-(1,3-Dihydroxy-4,4,5,5-tetramethyl-imidazolidin-2-yl)benzoic acid",-,-,-,MATCH
+positive,Adipoylglycine,-,-,-,MATCH
+positive,Kelatorphan,-,-,-,MATCH
+positive,"2,4(1H,3H)-Pyrimidinedione, 5-fluoro-1-(tetrahydro-2-furanyl)-, (R)-",-,-,-,MATCH
+positive,2-Quinolinylmethanol,-,-,-,MATCH
+positive,Piroximone,-,-,-,MATCH
+positive,Aspirin eugenol ester,-,-,-,MATCH
+positive,Thienamycin,-,-,-,MATCH
+positive,Diminazene,-,-,-,MATCH
+positive,"(2R,3R,4R,5R)-2-Amino-4,5,6-trihydroxy-3-[(2R)-1-oxopropan-2-yl]oxyhexanal",-,-,-,MATCH
+positive,Cytosine deoxyribonucleoside,-,-,-,MATCH
+positive,Dihydrothymine,Dihydrothymine,Cyclic ureas,RM0135880,MATCH
+positive,2-n-Propylthiazolidine-4-carboxylic acid,-,-,-,MATCH
+positive,Glycylproline,Gly-Pro,Amino acids and peptides,RM0009959,MATCH
+positive,Kinetin riboside,-,-,-,MATCH
+positive,"1-beta-D-Arabinofuranosyl-5-fluoro-(1H,3H)-pyrimidine-2,4-dione",-,-,-,MATCH
+positive,"2,6-Diaminopurine 2',3'-dideoxyriboside",-,-,-,MATCH
+positive,Tryptophol,Tryptophanol,Tryptophan alkaloids,RM0161098,MATCH
+positive,Diphacinone,-,-,-,MATCH
+positive,(Z)-N-Feruloyl-5-hydroxyanthranilic acid,Avenanthramide 2f,Phenylpropanoids,RM0186839,MATCH
+positive,Tetradecylamine,Tetradecylamine,Amines,RM0151053,MATCH
+positive,"9-Octadecenamide, N-(2-hydroxyethyl)-, (9Z)-",Oleoyl-EA,Fatty amides,RM0153033,MATCH
+positive,"(2S,3R)-2-Amino-4-octadecene-3-ol",1-Deoxysphingosine,Sphingoid bases,RM0189998,MATCH
+positive,Y-27632 Dihydrochloride,-,-,-,MATCH
+positive,S-Farnesyl cysteine,Farnesylcysteine,Isoprenoids,RM0118441,MATCH
+positive,O-Phosphoethanolamine,Phosphoethanolamine,Phosphate esters,RM0060581,MATCH
+positive,N-OMEGA-PROPYL-L-ARGININE,-,-,-,MATCH
+positive,"(2R)-3-Sulfanylpropane-1,2-diol",-,-,-,MATCH
+positive,Aminocarb,Aminocarb,Benzenes,RM0188400,MATCH
+positive,"Dibenzo(b,f)thiepin-3-methanol, 5,5-dioxide",-,-,-,MATCH
+positive,Benzoxazole,-,-,-,MATCH
+positive,METAZACHLOR,Metazachlor,Anilides,RM0037700,MATCH
+positive,1-Nonanethiol,-,-,-,MATCH
+positive,"2,2,6,6-Tetramethylpiperidin-1-ol",-,-,-,MATCH
+positive,"2,3-Dihydro-1H-pyrrole-2-carboxylic acid",-,-,-,MATCH
+positive,Betonicine,Betonicine,Amino acids and peptides,RM0161695,MATCH
+positive,5-Hydroxy-L-tryptophan,5-Hydroxy-tryptophan,Amino acids and peptides,RM0131839,MATCH
+positive,2-(4-(Methylamino)phenyl)benzo[d]thiazol-6-ol,-,-,-,MATCH
+positive,N-(9H-Fluoren-9-ylacetyl)-L-phenylalanine,-,-,-,MATCH
+positive,N-Methacryloyl-L-glutamic acid,-,-,-,MATCH
+positive,Homocysteine,Homocysteine,Amino acids and peptides,RM0136837,MATCH
+positive,Dihydrotanshinone,-,-,-,MATCH
+positive,(2-Chlorophenyl)diphenylmethane,(2-Chlorophenyl)diphenylmethane,Halobenzenes,RM0058505,MATCH
+positive,N6-Carboxymethyllysine,N(6)-Carboxymethyl-lysine,Amino acids and peptides,RM0137090,MATCH
+positive,"Caffeine, 8-((3-methoxypropyl)amino)-",-,-,-,MATCH
+positive,DL-Cysteine,Cysteine,Amino acids and peptides,RM0129784,MATCH
+positive,Metronidazole phosphate,-,-,-,MATCH
+positive,(2S)-6-Oxa-1-azabicyclo[3.1.0]hexane-2-carboxylic acid,-,-,-,MATCH
+positive,Isoniazid,Isoniazid,Pyridine alkaloids,RM0157070,MATCH
+positive,tetrahydrothiophene,-,-,-,MATCH
+positive,Chlorambucil-tertiary butyl ester,-,-,-,MATCH
+positive,n-octyl-beta-D-thioglucopyranoside,-,-,-,MATCH
+positive,Morantel,-,-,-,MATCH
+positive,Mecamylamine,-,-,-,MATCH
+positive,Aceprometazine,Aceprometazine,Tryptophan alkaloids,RM0204120,MATCH
+positive,Linoleoyl ethanolamide,Linoleoyl-EA,Fatty amides,RM0140131,MATCH
+positive,Tiglylcarnitine,CAR 4:1;2Me,Fatty esters,RM0154204,MATCH
+positive,Methotrimeprazine,Methotrimeprazine,Tryptophan alkaloids,RM0204081,MATCH
+positive,Dapivirine,-,-,-,MATCH
+positive,Ketamine,Ketamine,Halobenzenes,RM0161480,MATCH
+positive,Tyr-Gly,Tyr-Gly,Amino acids and peptides,RM0129533,MATCH
+positive,N-Desmethyllevomepromazine,-,-,-,MATCH
+positive,N-Acetyl-2-hydroxybenzamide,-,-,-,MATCH
+positive,3-Chlorobiphenyl,-,-,-,MATCH
+positive,Norketamine,Norketamine,Halobenzenes,RM0188145,MATCH
+positive,"5-(Hexahydro-2-oxo-1H-thieno[3,4-D]imidazol-6-YL)pentanal",-,-,-,MATCH
+positive,4-Nitrophenyl butyrate,-,-,-,MATCH
+positive,Dihydrokainic acid,Dihydrokainic acid,Amino acids and peptides,RM0228159,MATCH
+positive,Tert-Butyl (2-(2-hydroxyethoxy)ethyl)carbamate,-,-,-,MATCH
+positive,"1,5-Benzothiazepin-4(5H)-one, 2,3-dihydro-3-hydroxy-2-(4-methoxyphenyl)-5-(2-(methylamino)ethyl)-, (2S,3S)-",-,-,-,MATCH
+positive,Telbivudine,-,-,-,MATCH
+positive,"2-Propylthiazolo[4,5-c]quinolin-4-amine",-,-,-,MATCH
+positive,3-(Phosphonomethyl)-5-phenyl-D-phenylalanine,-,-,-,MATCH
+positive,Ethosuximide,Ethosuximide,Pyrrolines,RM0050240,MATCH
+positive,"4,7-Dioxoheptanoic acid",-,-,-,MATCH
+positive,Clofibrate,Clofibrate,Phenoxyacetic acids,RM0042925,MATCH
+positive,6-Hydroxymethylpterin,2-Amino-6-Hydroxymethyl-3H-Pteridin-4-one,Purines,RM0228146,MATCH
+positive,(2Z)-2-Morpholin-4-yliminoacetonitrile,-,-,-,MATCH
+positive,"1,4-Pentadien-3-one, 1,5-diphenyl-",-,-,-,MATCH
+positive,"N,N-Dimethylacrylamide",-,-,-,MATCH
+positive,1-Methyl-4-piperidyl acetate,-,-,-,MATCH
+positive,Trazodone,Trazodone,Piperazines,RM0136479,MATCH
+positive,Proline betaine,Proline betaine,Amino acids and peptides,RM0012987,MATCH
+positive,"(2R,3S,5R)-5-(4,5-Dihydroimidazo[2,1-f]purin-3-yl)-2-(hydroxymethyl)oxolan-3-ol",-,-,-,MATCH
+positive,Sulforaphane-cysteine-glycine,-,-,-,MATCH
+positive,3-Ethylphenylsulfate,3-Ethylphenyl sulfate,Arylsulfates,RM0228522,MATCH
+positive,Progabide,-,-,-,MATCH
+positive,Beclobrate,-,-,-,MATCH
+positive,Dimethenamid,Dimethenamid,Heteroaromatic compounds,RM0200263,MATCH
+positive,Pirotiodecane,-,-,-,MATCH
+positive,Diaminopimelic acid,Diaminopimelic acid,Amino acids and peptides,RM0138269,MATCH
+positive,Terbufos,Terbufos,Organic dithiophosphoric acids,RM0157201,MATCH
+positive,2-(N-Morpholino)-ethanesulfonic acid,2-(N-Morpholino)ethanesulfonic acid,Morpholines,RM0021626,MATCH
+positive,6-Diazo-5-oxo-L-norleucine,-,-,-,MATCH
+positive,Parbendazole,-,-,-,MATCH
+positive,O-Succinyl-L-homoserine,o-Succinylhomoserine,Amino acids and peptides,RM0136785,MATCH
+positive,1-Heptanesulfonic acid,-,-,-,MATCH
+positive,Allyl-isopropyl-acetylharnstoff,-,-,-,MATCH
+positive,"1,3,7-Trimethyl-8-(3-chlorostyryl)xanthine",-,-,-,MATCH
+negative,"(2R,5S)-5-Amino-1,2,6,7-tetrahydroxyoctane-3,4-dione",-,-,-,MATCH
+negative,"(2S)-4,5,7-Trihydroxy-2-(3,4,5-trihydroxyphenyl)-4H-chromen-3-one",-,-,-,MATCH
+negative,"(2S,3R,4R,6R,7S,8R,9R)-1,2,3,4,6,7,8,9-Octahydroxydecan-5-one",-,-,-,MATCH
+negative,"(3R,5R,6R)-1,2,3,5,6,7-Hexahydroxyheptan-4-one",-,-,-,MATCH
+negative,"(3S,4R,5S)-3,4-Dihydroxy-5-(2-hydroxyacetyl)oxolan-2-one",-,-,-,MATCH
+negative,"[(2R,3R,4R,5S)-3,4-Diacetyloxy-5-(2,4-dioxopyrimidin-1-yl)oxolan-2-yl]methyl acetate",-,-,-,MATCH
+negative,"1-(3-Chloro-4-hydroxyphenyl)-2-((1,1-dimethylethyl)amino)-1-propanone",-,-,-,MATCH
+negative,"1,5,6-Trihydroxyhexane-2,3-dione",-,-,-,MATCH
+negative,"1,5-Dinitrocyclohexa-1,4-diene",-,-,-,MATCH
+negative,"1-[(2R,4R,5R)-3,4-Dihydroxy-5-(hydroxymethyl)-2-oxolanyl]-2-pyrimidinone",-,-,-,MATCH
+negative,"1-Hydroxypyrrole-2,5-diol",-,-,-,MATCH
+negative,"1-Methylpyrrole-2,3,5-triol",-,-,-,MATCH
+negative,"1-Naphthalenesulfonic acid, 3,4-dihydro-3,4-dioxo-",-,-,-,MATCH
+negative,"2,6-Dinitrophenol",-,-,-,MATCH
+negative,2'-C-Methylcytidine,-,-,-,MATCH
+negative,2'-Deoxyadenosine 3'-monophosphate,2'-Deoxy-3'-AMP,Purines,RM0172002,MATCH
+negative,2-Phenylethanol glucuronide,2-Phenylethanol glucuronide,Benzenes,RM0227085,MATCH
+negative,3-Hydroxyisovaleric acid,3-Hydroxyisovaleric acid,Fatty acids,RM0152879,MATCH
+negative,4-Hydroxybutyric acid,4-Hydroxybutyric acid,Fatty acids,RM0153113,MATCH
+negative,4-Hydroxynicotinamide,-,-,-,MATCH
+negative,4-Hydroxyquinoline,4-Hydroxyquinoline,Quinolones,RM0071751,MATCH
+negative,4-Isopropoxyphenol,-,-,-,MATCH
+negative,4-Mercaptobutyric acid,-,-,-,MATCH
+negative,4-Mercapto-ethyl-pyridine,-,-,-,MATCH
+negative,4-Methylbenzenecarbothioamide,-,-,-,MATCH
+negative,5-Hydroxyindoleacetic acid,5-Hydroxyindoleacetic acid,Tryptophan alkaloids,RM0135989,MATCH
+negative,"Butanoic acid, [(diethoxyphosphinyl)oxy]methyl ester",-,-,-,MATCH
+negative,Cinnamic acid,trans-Cinnamic acid,Phenylpropanoids,RM0159952,MATCH
+negative,Citraconic acid,Citraconic acid,Fatty acids,RM0153097,MATCH
+negative,D-2-Hydroxyglutaric acid,D-2-Hydroxyglutaric acid,Fatty acids,RM0152558,MATCH
+negative,D-alpha-Aminobutyric acid,2R-Aminobutyric acid,Amino acids and peptides,RM0134974,MATCH
+negative,D-Arabitol,Arabitol,Monosaccharides,RM0135975,MATCH
+negative,D-Fructose,Fructose,Monosaccharides,RM0136734,MATCH
+negative,DL-Dopa,DOPA,Amino acids and peptides,RM0138924,MATCH
+negative,D-Ribulose 5-phosphate,Ribulose 5-phosphate,Monosaccharides,RM0020730,MATCH
+negative,Erythronic acid,Erythronic acid,Monosaccharides,RM0041611,MATCH
+negative,Ethyl glucuronide,Ethyl glucuronide,Monosaccharides,RM0050129,MATCH
+negative,Galactose 1-phosphate,Galactose 1-phosphate,Monosaccharides,RM0155945,MATCH
+negative,Gluconic acid,Gluconic acid,Monosaccharides,RM0155944,MATCH
+negative,Glutarylglycine,Glutarylglycine,Amino acids and peptides,RM0135970,MATCH
+negative,Hexanoylglycine,NA-Gly 6:0,Fatty amides,RM0153690,MATCH
+negative,Hippuric acid,Hippuric acid,Benzamides,RM0135980,MATCH
+negative,Homocitrulline,Homocitrulline,Amino acids and peptides,RM0138931,MATCH
+negative,Hydroxyisocaproic acid,Hydroxyisocaproic acid,Fatty acids,RM0140735,MATCH
+negative,Hydroxyphenyllactic acid,Hydroxyphenyllactic acid,Phenylpropanoids,RM0052813,MATCH
+negative,Hydroxypropionic acid,Hydroxypropionic acid,Fatty acids,RM0139419,MATCH
+negative,Indolelactic acid,Indolelactic acid,Tryptophan alkaloids,RM0044363,MATCH
+negative,Isodesmosine,Isodesmosine,Pyridine alkaloids,RM0224589,MATCH
+negative,Isovalerylglycine,Isovalerylglycine,Amino acids and peptides,RM0012553,MATCH
+negative,Ketoleucine,Ketoleucine,Keto acids,RM0135977,MATCH
+negative,L-Arabinose,L-Arabinose,Monosaccharides,RM0199728,MATCH
+negative,L-Homoserine,Homoserine,Amino acids and peptides,RM0135982,MATCH
+negative,L-Rhamnulose,-,-,-,MATCH
+negative,Malonic acid,Malonic acid,Fatty acids,RM0153291,MATCH
+negative,Mannitol,Mannitol,Monosaccharides,RM0155938,MATCH
+negative,Methylglutaric acid,Methylglutaric acid,Fatty acids,RM0153032,MATCH
+negative,N(1)-Ethylchlorpropamide,-,-,-,MATCH
+negative,N-(2-Amino-2-oxoethyl)-2-methylprop-2-enamide,-,-,-,MATCH
+negative,N-(3-Pyrene)maleimide,-,-,-,MATCH
+negative,N(4)-Acetylsulfisoxazole,-,-,-,MATCH
+negative,N-(4-Aminobenzoyl)-L-glutamic acid,4-Aminobenzoylglutamic acid,Amino acids and peptides,RM0131948,MATCH
+negative,N(epsilon)-(carboxyethyl)lysine,N(6)-(2-Carboxyethyl)-lysine,Amino acids and peptides,RM0128692,MATCH
+negative,N-4-Carboxybenzylglucamine dithiocarbamate,-,-,-,MATCH
+negative,N-Acetylcyanamide,-,-,-,MATCH
+negative,N-Acetyl-DL-phenylalanine,-,-,-,MATCH
+negative,N-Acetyl-L-aspartic acid,N-Acetylaspartic acid,Amino acids and peptides,RM0136005,MATCH
+negative,N-Allylglycine,-,-,-,MATCH
+negative,N-Butyrylglycine,NA-Gly 4:0,Fatty amides,RM0129939,MATCH
+negative,n-carboxymethyllysine,-,-,-,MATCH
+negative,n-chloroaniline,-,-,-,MATCH
+negative,Neuraminic acid,Neuraminic acid,Monosaccharides,RM0136014,MATCH
+negative,n-formimidoyl-glutamic acid,Formiminoglutamic acid,Amino acids and peptides,RM0136010,MATCH
+negative,N-Formylglycine,N-Formylglycine,Amino acids and peptides,RM0129975,MATCH
+negative,N-Hbgd,-,-,-,MATCH
+negative,N-Hydroxybenzamide,-,-,-,MATCH
+negative,N-hydroxy-L-tryptophan,-,-,-,MATCH
+negative,N-Hydroxymethyl-N-methylformamide,-,-,-,MATCH
+negative,N-Methyl-4-nitroaniline,-,-,-,MATCH
+negative,N-Methyl-DL-aspartic acid,-,-,-,MATCH
+negative,N-Methylsuccinimide,-,-,-,MATCH
+negative,N-NITROSO-N-METHYLURETHANE,-,-,-,MATCH
+negative,N-Oxalylglycine,N-Oxalylglycine,Amino acids and peptides,RM0188082,MATCH
+negative,N-Oxalyl-L-alanine,-,-,-,MATCH
+negative,N-Propyl-N-nitrosourea,-,-,-,MATCH
+negative,ortho-Hydroxyphenylacetic acid,2-Hydroxyphenylacetic acid,Phenylpropanoids,RM0133220,MATCH
+negative,Oxypurinol,Oxypurinol,Purines,RM0156424,MATCH
+negative,Phenylacetylglycine,Phenylacetylglycine,Amino acids and peptides,RM0012731,MATCH
+negative,Phenyllactic acid,Phenyllactic acid,Phenylpropanoids,RM0012471,MATCH
+negative,Propionylglycine,N-Propionylglycine,Amino acids and peptides,RM0136001,MATCH
+negative,Pseudouridine,Pseudouridine,Pyrimidines,RM0033386,MATCH
+negative,Suberic acid,Suberic acid,Fatty acids,RM0134985,MATCH
+negative,Tyramine glucuronide,Coenzyme Q10,Quinones and hydroquinones,RM0138857,MATCH
+negative,Valeric acid,Valeric acid,Fatty acids,RM0139464,MATCH
+targeted,alpha-Ketoglutaric acid,2-Oxoglutaric acid,TCA acids,RM0135911,MATCH
+targeted,AMP,AMP,Purines,RM0138921,MATCH
+targeted,ATP,ATP,Purines,RM0138930,MATCH
+targeted,CDP,CDP,Pyrimidines,RM0138946,MATCH
+targeted,Citric acid,Citric acid,TCA acids,RM0135884,MATCH
+targeted,CMP,CMP,Pyrimidines,RM0138923,MATCH
+targeted,D-Sedoheptulose 7-phosphate,Sedoheptulose 7-phosphate,Monosaccharides,RM0155901,MATCH
+targeted,Erythrose 4-phosphate,Erythrose 4-phosphate,Monosaccharides,RM0155934,MATCH
+targeted,Fumarate,Fumaric acid,TCA acids,RM0135891,MATCH
+targeted,GDP,GDP,Purines,RM0033168,MATCH
+targeted,Gluconolactone,Gluconolactone,Monosaccharides,RM0049636,MATCH
+targeted,Glucose,Glucose,Monosaccharides,RM0135901,MATCH
+targeted,Glucose 1-phosphate,Glucose 1-phosphate,Monosaccharides,RM0034128,MATCH
+targeted,Glucose 6-phosphate,Glucose 6-phosphate,Monosaccharides,RM0136106,MATCH
+targeted,GMP,GMP,Purines,RM0033601,MATCH
+targeted,GTP,GTP,Purines,RM0136084,MATCH
+targeted,Guanosine,Guanosine,Purines,RM0156423,MATCH
+targeted,Lactic acid,Lactic acid,Short-chain acids,RM0135904,MATCH
+targeted,Malic acid,Malic acid,TCA acids,RM0135894,MATCH
+targeted,Oxaloacetic acid,Oxaloacetic acid,TCA acids,RM0134987,MATCH
+targeted,Ribose,Ribose,Monosaccharides,RM0006551,MATCH
+targeted,Ribose 5-phosphate,Ribose 5-phosphate,Monosaccharides,RM0158596,MATCH
+targeted,Ribulose 5-phosphate,Ribulose 5-phosphate,Monosaccharides,RM0020730,MATCH
+targeted,Succinic acid,Succinic acid,TCA acids,RM0134982,MATCH
+targeted,UMP,UMP,Pyrimidines,RM0135929,MATCH
+targeted,Uridine,Uridine,Pyrimidines,RM0135933,MATCH
+targeted,4-Hydroxyproline,cis-4-Hydroxyproline,Amino acids and peptides,RM0021808,MATCH
+targeted,Aminoadipic Acid,Aminoadipic acid,Amino acids and peptides,RM0049220,MATCH
+targeted,2-Aminoisobutyric Acid,Aminoisobutyric acid,Fatty acids,RM0139553,MATCH
+targeted,Amino-n-butyric Acid,-,-,-,MATCH
+targeted,Butyrylcarnitine,CAR 4:0,Fatty esters,RM0153847,MATCH
+targeted,Carnitine,Carnitine,Carnitines,RM0008606,MATCH
+targeted,Citrulline,Citrulline,Amino acids and peptides,RM0136022,MATCH
+targeted,Creatinine,Creatinine,Azoles,RM0028430,MATCH
+targeted,Ethanolamine,Ethanolamine,Amines,RM0040238,MATCH
+targeted,Glycine,Glycine,Amino acids and peptides,RM0135888,MATCH
+targeted,Isovalerylcarnitine,CAR 4:0;3Me,Fatty esters,RM0154016,MATCH
+targeted,Kynurenine,Kynurenine,Amino acids and peptides,RM0132226,MATCH
+targeted,L-Acetylcarnitine,CAR 2:0,Fatty esters,RM0154009,MATCH
+targeted,L-Alanine,Alanine,Amino acids and peptides,RM0135898,MATCH
+targeted,L-Arginine,Arginine,Amino acids and peptides,RM0135963,MATCH
+targeted,L-Asparagine,Asparagine,Amino acids and peptides,RM0135724,MATCH
+targeted,L-Aspartic Acid,Aspartic acid,Amino acids and peptides,RM0135905,MATCH
+targeted,L-Cystathionine,Cystathionine,Amino acids and peptides,RM0135885,MATCH
+targeted,L-Cystine,Cystine,Amino acids and peptides,RM0135906,MATCH
+targeted,L-Glutamic Acid,Glutamic acid,Amino acids and peptides,RM0135893,MATCH
+targeted,L-Glutamine,Glutamine,Amino acids and peptides,RM0012560,MATCH
+targeted,L-Histidine,Histidine,Amino acids and peptides,RM0129894,MATCH
+targeted,L-Isoleucine,Isoleucine,Amino acids and peptides,RM0134975,MATCH
+targeted,L-Leucine,Leucine,Amino acids and peptides,RM0136379,MATCH
+targeted,L-Lysine,Lysine,Amino acids and peptides,RM0135903,MATCH
+targeted,L-Methionine,Methionine,Amino acids and peptides,RM0161726,MATCH
+targeted,L-Phenylalanine,Phenylalanine,Amino acids and peptides,RM0135897,MATCH
+targeted,L-Proline,Proline,Amino acids and peptides,RM0135899,MATCH
+targeted,L-Sarcosine,Sarcosine,Amino acids and peptides,RM0135925,MATCH
+targeted,L-Serine,Serine,Amino acids and peptides,RM0032433,MATCH
+targeted,L-Threonine,Threonine,Amino acids and peptides,RM0135900,MATCH
+targeted,L-Tryptophan,Tryptophan,Amino acids and peptides,RM0136024,MATCH
+targeted,L-Tyrosine,Tyrosine,Amino acids and peptides,RM0135896,MATCH
+targeted,L-Valine,Valine,Amino acids and peptides,RM0136018,MATCH
+targeted,Methylhistidine,Methylhistidine,Amino acids and peptides,RM0005026,MATCH
+targeted,Ornithine,Ornithine,Amino acids and peptides,RM0135912,MATCH
+targeted,Propionylcarnitine,CAR 3:0,Fatty esters,RM0154041,MATCH
+targeted,Taurine,Taurine,Sulfonic acids,RM0118223,MATCH
+targeted,Urea,Urea,Organonitrogen compounds,RM0117395,MATCH

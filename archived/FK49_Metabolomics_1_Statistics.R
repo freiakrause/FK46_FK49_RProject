@@ -13,6 +13,18 @@ library(ggrepel)
 library(emmeans)
 source("FK49_Definitions.R")
 ExpId = "FK49"
+######
+######Hier beim nächsten mal
+###### Statistik und plots trennen
+###### PATHS colors und shapes aus definitions einbauen
+###### PLots male und female als shape einbauen
+###### p Sex und p Treatment sex anschauen und wenn notwendig plotten
+###### bruache ich emmeans oder nicht? neben FC 
+###### im großen und ganzen? keine großen pathways unterschiedliche zsichen tam und etoh
+annotation_colors <- list(
+Sex = Sex_colors,
+Treatment = Treatment_colors,
+Diet = Diet_colors )
 
 process_metabolome <- function(df, meta_cols) {
   df %>%
@@ -203,37 +215,37 @@ subset_data <- function(data,
     metadata   = dataset[, meta_cols, drop = FALSE]
   ))
 }
-sub_data <-do.call(subset_data,c(list(data = metabolome_negative, method = "untargeted"), CDHFD_a_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_A_neg.png", path =paste0(untargeted_pwd,"/CDHFD_a") )
-
-sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), CDHFD_a_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_A_pos.png", path =paste0(untargeted_pwd,"/CDHFD_a"))
-
-sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), ND_f_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_ND_f_pos.png", path =paste0(untargeted_pwd,"/ND_f"))
-
-sub_data <-do.call(subset_data, c(list(data = metabolome_negative, method = "untargeted"), ND_f_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_ND_f_neg.png", path =paste0(untargeted_pwd,"/ND_f"))
-
-
-sub_data <-do.call(subset_data,c(list(data = metabolome_negative, method = "untargeted"), CDHFD_f_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_f_neg.png", path =paste0(untargeted_pwd,"/CDHFD_f"))
-sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), CDHFD_f_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_f_pos.png", path =paste0(untargeted_pwd,"/CDHFD_f"))
-
-sub_data <-do.call(subset_data,c(list(data = metabolome_negative, method = "untargeted"), CDHFD_m_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_m_neg.png", path =paste0(untargeted_pwd,"/CDHFD_m"))
-sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), CDHFD_m_filters))
-ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_m_pos.png", path =paste0(untargeted_pwd,"/CDHFD_m"))
-
-sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), ND_f_filters))
-ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_ND_f.png", path =paste0(targeted_pwd,"/ND_f"))
-sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), CDHFD_a_filters))
-ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_A.png", path =paste0(targeted_pwd,"/CDHFD_a"))
-sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), CDHFD_m_filters))
-ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_m.png", path =paste0(targeted_pwd,"/CDHFD_m"))
-sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), CDHFD_f_filters))
-ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_f.png", path =paste0(targeted_pwd,"/CDHFD_f"))
+# sub_data <-do.call(subset_data,c(list(data = metabolome_negative, method = "untargeted"), CDHFD_a_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_A_neg.png", path =paste0(untargeted_pwd,"/CDHFD_a") )
+# 
+# sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), CDHFD_a_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_A_pos.png", path =paste0(untargeted_pwd,"/CDHFD_a"))
+# 
+# sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), ND_f_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_ND_f_pos.png", path =paste0(untargeted_pwd,"/ND_f"))
+# 
+# sub_data <-do.call(subset_data, c(list(data = metabolome_negative, method = "untargeted"), ND_f_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_ND_f_neg.png", path =paste0(untargeted_pwd,"/ND_f"))
+# 
+# 
+# sub_data <-do.call(subset_data,c(list(data = metabolome_negative, method = "untargeted"), CDHFD_f_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_f_neg.png", path =paste0(untargeted_pwd,"/CDHFD_f"))
+# sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), CDHFD_f_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_f_pos.png", path =paste0(untargeted_pwd,"/CDHFD_f"))
+# 
+# sub_data <-do.call(subset_data,c(list(data = metabolome_negative, method = "untargeted"), CDHFD_m_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_m_neg.png", path =paste0(untargeted_pwd,"/CDHFD_m"))
+# sub_data <-do.call(subset_data,c(list(data = metabolome_positive, method = "untargeted"), CDHFD_m_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 12, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_m_pos.png", path =paste0(untargeted_pwd,"/CDHFD_m"))
+# 
+# sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), ND_f_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_ND_f.png", path =paste0(targeted_pwd,"/ND_f"))
+# sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), CDHFD_a_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_A.png", path =paste0(targeted_pwd,"/CDHFD_a"))
+# sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), CDHFD_m_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_m.png", path =paste0(targeted_pwd,"/CDHFD_m"))
+# sub_data <-do.call(subset_data,c(list(data = metabolome_targeted, method = "targeted"), CDHFD_f_filters))
+# ggsave(plot= sub_data$Preprocessing, width= 9, height= 6, dpi=300, filename="BG_prepocessing_CDHFD_f.png", path =paste0(targeted_pwd,"/CDHFD_f"))
 
 plot_PCA<- function(data,
                     plot_variables= "Diet",
@@ -344,23 +356,23 @@ plot_PCA<- function(data,
 
 do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Sex","Treatment","T_S"),FOLDER = "CDHFD_a", NAME= "CDHFD_a_pos", method = "untargeted" ), CDHFD_a_filters))
 do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Sex","Treatment","T_S"),FOLDER = "CDHFD_a", NAME= "CDHFD_a_neg" , method = "untargeted" ), CDHFD_a_filters))
-do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Treatment"),FOLDER = "ND_f", NAME= "ND_f_pos" , method = "untargeted"),  ND_f_filters))
-do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Treatment"),FOLDER = "ND_f", NAME= "ND_f_neg" , method = "untargeted"),  ND_f_filters))
-do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Treatment"),FOLDER = "CDHFD_m", NAME= "CDHFD_m_pos", method = "untargeted" ),  CDHFD_m_filters))
-do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Treatment"),FOLDER = "CDHFD_m", NAME= "CDHFD_m_neg" , method = "untargeted" ), CDHFD_m_filters))
-do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Treatment"),FOLDER = "CDHFD_f", NAME= "CDHFD_f_pos", method = "untargeted" ),  CDHFD_f_filters))
-do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Treatment"),FOLDER = "CDHFD_f", NAME= "CDHFD_f_neg", method = "untargeted" ),  CDHFD_f_filters))
+# do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Treatment"),FOLDER = "ND_f", NAME= "ND_f_pos" , method = "untargeted"),  ND_f_filters))
+# do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Treatment"),FOLDER = "ND_f", NAME= "ND_f_neg" , method = "untargeted"),  ND_f_filters))
+# do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Treatment"),FOLDER = "CDHFD_m", NAME= "CDHFD_m_pos", method = "untargeted" ),  CDHFD_m_filters))
+# do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Treatment"),FOLDER = "CDHFD_m", NAME= "CDHFD_m_neg" , method = "untargeted" ), CDHFD_m_filters))
+# do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Treatment"),FOLDER = "CDHFD_f", NAME= "CDHFD_f_pos", method = "untargeted" ),  CDHFD_f_filters))
+# do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Treatment"),FOLDER = "CDHFD_f", NAME= "CDHFD_f_neg", method = "untargeted" ),  CDHFD_f_filters))
 
-do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Diet"),FOLDER = "NDvsCDHFD", NAME= "NDvsCDHFD_neg", method = "untargeted" ),  NDvsCHFD_filter))
-do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Diet"),FOLDER = "NDvsCDHFD", NAME= "NDvsCDHFD_pos", method = "untargeted" ),  NDvsCHFD_filter))
+# do.call(plot_PCA,c(list( data = metabolome_negative,    plot_variables = c("Diet"),FOLDER = "NDvsCDHFD", NAME= "NDvsCDHFD_neg", method = "untargeted" ),  NDvsCHFD_filter))
+# do.call(plot_PCA,c(list( data = metabolome_positive,    plot_variables = c("Diet"),FOLDER = "NDvsCDHFD", NAME= "NDvsCDHFD_pos", method = "untargeted" ),  NDvsCHFD_filter))
 
 
 do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "CDHFD_a", NAME= "CDHFD_a", method = "targeted" ),  CDHFD_a_filters))
-do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "CDHFD_m", NAME= "CDHFD_m", method = "targeted" ),  CDHFD_f_filters))
-do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "CDHFD_f",NAME= "CDHFD_f", method = "targeted" ),  CDHFD_m_filters))
-do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "ND_f", NAME= "ND_f", method = "targeted" ),  ND_f_filters))
+# do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "CDHFD_m", NAME= "CDHFD_m", method = "targeted" ),  CDHFD_f_filters))
+# do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "CDHFD_f",NAME= "CDHFD_f", method = "targeted" ),  CDHFD_m_filters))
+# do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "ND_f", NAME= "ND_f", method = "targeted" ),  ND_f_filters))
 
-do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "NDvsCDHFD", NAME= "NDvsCDHFD", method = "targeted" ),  NDvsCHFD_filter))
+# do.call(plot_PCA,c(list( data = metabolome_targeted,    plot_variables = c("Treatment"), FOLDER = "NDvsCDHFD", NAME= "NDvsCDHFD", method = "targeted" ),  NDvsCHFD_filter))
 
 
 
@@ -482,6 +494,8 @@ perform_ttest <- function(data,
     results$adj.p.value <- p.adjust(results$p_Treatment, method="fdr")
     results$negLog10FDR <- -log10(results$adj.p.value)
     results$significant <- results$adj.p.value < 0.05 & abs(results$log2FC) > 0.5  
+    results$adj_psex<- p.adjust(results$p_Sex, method="fdr")
+    results$adj_p_Treatment_Sex <-p.adjust(results$p_Sex, method="fdr")
     results$trend <- results$adj.p.value < 0.1 & abs(results$log2FC) > 0.3
     results$direction <-case_when(results$adj.p.value < 0.05 &results$log2FC > 0.5  ~ "UP",
                                   results$adj.p.value < 0.05 &results$log2FC < -0.5 ~ "DOWN",
@@ -496,6 +510,8 @@ perform_ttest <- function(data,
         Metabolite, 
         p_Treatment, 
         adj.p.value, 
+        adj_psex,
+        adj_p_Treatment_Sex,
         log2FC, 
         log2FC_female, 
         log2FC_male, 
@@ -777,6 +793,37 @@ perform_ttest <- function(data,
   ggsave(plot= p_heat, filename= paste0(NAME,"_heatmap.png"),limitsize = FALSE, 
          width= 20, height = heatmap_height, dpi = 300,bg = "white", path =paste0(PATH,"/",FOLDER,"/" ))
   } else {
+    
+    all_metabolites <- results %>%
+      pull(Metabolite )
+    
+    heatmap_data <- t(selected_values[, all_metabolites, drop = FALSE])
+    
+    colnames(heatmap_data) <- df$metadata$Animal  # Assuming SampleID is in metadata
+    ann <- data.frame(Treatment = df$metadata$Treatment,Sex=df$metadata$Sex, Diet= df$metadata$Diet)
+    rownames(ann) <- df$metadata$Animal
+    heatmap_height <-nrow(heatmap_data)/8+3
+    
+    p_heat<- pheatmap::pheatmap(heatmap_data,
+                                scale = "row",
+                                cluster_rows = TRUE, 
+                                cluster_cols = TRUE,
+                                annotation_col  = ann)#,
+                               # annotation_colors = annotation_colors)
+    
+    print(p_heat)
+    ggsave(plot= p_heat, filename= paste0(NAME,"_heatmap_ALLclutered.png"),limitsize = FALSE, 
+           width= 20, height = heatmap_height, dpi = 300,bg = "white", path =paste0(PATH,"/",FOLDER,"/" ))
+    p_heat<- pheatmap::pheatmap(heatmap_data,
+                                scale = "row",
+                                cluster_rows = FALSE, 
+                                cluster_cols = FALSE,
+                                annotation_col  = ann,
+                                annotation_colors = annotation_colors)
+    
+    print(p_heat)
+    ggsave(plot= p_heat, filename= paste0(NAME,"_heatmapALL.png"),limitsize = FALSE, 
+           width= 20, height = heatmap_height, dpi = 300,bg = "white", path =paste0(PATH,"/",FOLDER,"/" ))
     print("Not enough significant changes for heatmap.")
 }
   
@@ -814,22 +861,22 @@ run_and_save <- function(data, NAME, comparison, top_n = 5, data_type = "log",
   return(result)
 }
 
-run_and_save(data = metabolome_positive, FOLDER = "NDvsCDHFD",  NAME ="NDvsCDHFD_p", comparison = "Diet",      top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-25,25), YLIM= c(0,35),  method = "untargeted", NDvsCHFD_filter)
-run_and_save(data = metabolome_negative, FOLDER = "NDvsCDHFD",  NAME ="NDvsCDHFD_n", comparison = "Diet",      top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-10,10), YLIM= c(0,5),   method = "untargeted", NDvsCHFD_filter)
+# run_and_save(data = metabolome_positive, FOLDER = "NDvsCDHFD",  NAME ="NDvsCDHFD_p", comparison = "Diet",      top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-25,25), YLIM= c(0,35),  method = "untargeted", NDvsCHFD_filter)
+# run_and_save(data = metabolome_negative, FOLDER = "NDvsCDHFD",  NAME ="NDvsCDHFD_n", comparison = "Diet",      top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-10,10), YLIM= c(0,5),   method = "untargeted", NDvsCHFD_filter)
 run_and_save(data = metabolome_positive, FOLDER = "CDHFD_a",    NAME ="CDHFD_a_p",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = TRUE,  XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_a_filters)
 run_and_save(data = metabolome_negative, FOLDER = "CDHFD_a",    NAME ="CDHFD_a_n",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = TRUE,  XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_a_filters)
-run_and_save(data = metabolome_positive, FOLDER = "ND_f",       NAME ="ND_f_p",     comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-11,11), YLIM= c(0,6.5), method = "untargeted", ND_f_filters)
-run_and_save(data = metabolome_negative, FOLDER = "ND_f",       NAME ="ND_f_n",     comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", ND_f_filters)
-run_and_save(data = metabolome_positive, FOLDER = "CDHFD_m",    NAME ="CDHFD_m_p",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_m_filters)
-run_and_save(data = metabolome_negative, FOLDER = "CDHFD_m",    NAME ="CDHFD_m_n",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_m_filters)
-run_and_save(data = metabolome_positive, FOLDER = "CDHFD_f",    NAME ="CDHFD_f_p",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_f_filters)
-run_and_save(data = metabolome_negative ,FOLDER = "CDHFD_f",    NAME ="CDHFD_f_n",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_f_filters)
+# run_and_save(data = metabolome_positive, FOLDER = "ND_f",       NAME ="ND_f_p",     comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-11,11), YLIM= c(0,6.5), method = "untargeted", ND_f_filters)
+# run_and_save(data = metabolome_negative, FOLDER = "ND_f",       NAME ="ND_f_n",     comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", ND_f_filters)
+# run_and_save(data = metabolome_positive, FOLDER = "CDHFD_m",    NAME ="CDHFD_m_p",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_m_filters)
+# run_and_save(data = metabolome_negative, FOLDER = "CDHFD_m",    NAME ="CDHFD_m_n",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_m_filters)
+# run_and_save(data = metabolome_positive, FOLDER = "CDHFD_f",    NAME ="CDHFD_f_p",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_f_filters)
+# run_and_save(data = metabolome_negative ,FOLDER = "CDHFD_f",    NAME ="CDHFD_f_n",  comparison = "Treatment", top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "untargeted", CDHFD_f_filters)
 ### resulting trend and sig metabolites were saved into csv files. tried matching names in metaboanalyst but did not work completely, after various attempt of aoutmated matching, started to google metabolite names. Most of them I found in HMDB and filled in information (HMBD;KEGG,PubChem etc). Some were not found there thatn I used wahtever database i found it in.
 run_and_save(data = metabolome_targeted, FOLDER = "CDHFD_a",  NAME ="CDHFD_a",  comparison = "Treatment",  top_n = 5, data_type = "log", use_lm = TRUE,  XLIM= c(-5,5),   YLIM= c(0,6.5), method = "targeted", CDHFD_a_filters)
-run_and_save(data = metabolome_targeted, FOLDER = "CDHFD_m",  NAME ="CDHFD_m",  comparison = "Treatment",  top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "targeted", CDHFD_m_filters)
-run_and_save(data = metabolome_targeted, FOLDER = "CDHFD_f",  NAME ="CDHFD_f",  comparison = "Treatment",  top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "targeted", CDHFD_f_filters)
-run_and_save(data = metabolome_targeted, FOLDER = "ND_f",     NAME ="ND_f",     comparison = "Treatment",  top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "targeted", ND_f_filters)
-run_and_save(data = metabolome_targeted, FOLDER = "NDvsCDHFD",NAME ="NDvsCDHFD",comparison = "Diet",       top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-15,15), YLIM= c(0,12),  method = "targeted", NDvsCHFD_filter)
+# run_and_save(data = metabolome_targeted, FOLDER = "CDHFD_m",  NAME ="CDHFD_m",  comparison = "Treatment",  top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "targeted", CDHFD_m_filters)
+# run_and_save(data = metabolome_targeted, FOLDER = "CDHFD_f",  NAME ="CDHFD_f",  comparison = "Treatment",  top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "targeted", CDHFD_f_filters)
+# run_and_save(data = metabolome_targeted, FOLDER = "ND_f",     NAME ="ND_f",     comparison = "Treatment",  top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-5,5),   YLIM= c(0,6.5), method = "targeted", ND_f_filters)
+# run_and_save(data = metabolome_targeted, FOLDER = "NDvsCDHFD",NAME ="NDvsCDHFD",comparison = "Diet",       top_n = 5, data_type = "log", use_lm = FALSE, XLIM= c(-15,15), YLIM= c(0,12),  method = "targeted", NDvsCHFD_filter)
 
 rm(list = ls())
 gc()

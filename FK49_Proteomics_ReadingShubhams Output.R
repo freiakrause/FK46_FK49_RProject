@@ -1,4 +1,5 @@
 #FK49 Read Proteomics what we got from Shubham - files with p values, FCs and some transformed protein abundance data. Dont know the exact transormation
+rm(list=ls())
 gc()
 library(readxl)
 library(dplyr)
@@ -7,13 +8,12 @@ library(ggplot2)
 library(stringr)
 library(ggrepel)
 library(janitor)
+library(limma)
 source("FK49_Definitions.R")
-home <- normalizePath("~") # bc Windows does not start inuser dir but in user/documents dir
-parent <- dirname(home)
-setwd(paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_FK49_RProject"))
-proteom_input_pwd<-paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_FK46_Proteomics_Phosphoproteomics")
-proteom_output_pwd<-paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_Proteomics")
-Proteins<-read_excel(paste0(proteom_input_pwd,"/FK49_TAM_EtOH_STATISTICAL_results.xlsx"), sheet = 1)%>%
+
+proteom_input_pwd<-PATHS$proteomics$input
+proteom_output_pwd<-PATHS$proteomics$output
+Proteins<-read_excel(file.path(proteom_input_pwd,"/FK49_TAM_EtOH_STATISTICAL_results.xlsx"), sheet = 1)%>%
   mutate(Protein.Names= (gsub("_MOUSE", "", Protein.Names)))%>%
   rename(Name = Protein.Names,
               logFC = logFC...6,
@@ -26,13 +26,107 @@ Proteins<-read_excel(paste0(proteom_input_pwd,"/FK49_TAM_EtOH_STATISTICAL_result
               BH_corrected_pvalue_2 = BH_corrected_pvalue...35,
               Subset_2 = Subset...36,
               Regulation_2 = Regulation...37)%>%
-  select(-Regulation_2,-logFC_2,-pValue_2,-BH_corrected_pvalue_2,-Subset_2)
+  select(-Regulation_2,-logFC_2,-pValue_2,-BH_corrected_pvalue_2,-Subset_2,-pValue,-adj_pvalue,-Direction,-Subset_1,-Subset_2)
+meta<-read_excel(file.path(proteom_input_pwd,"FK49_FK46_BH_SampleList_Proteomics_Shubam.xlsx"))%>%
+                   filter(ExpID=="FK49", Batch == "2")%>%select(Animal,Sex,Treatment,PotentialShubhamNames)
+protein_matrix <- Proteins %>%
+  select(  F_TAM_1, F_TAM_2,  M_EtOH_1, M_EtOH_2, M_EtOH_3, M_EtOH_4, M_EtOH_5, 
+           F_TAM_3, F_TAM_4, F_TAM_5,  M_TAM_1, M_TAM_2, M_TAM_3,  F_EtOH_1, 
+           F_EtOH_2, F_EtOH_3, F_EtOH_4,  M_TAM_4 ) %>%
+  as.matrix()
+rownames(protein_matrix) <- Proteins$Name
+meta <- meta[match(colnames(protein_matrix),
+                   meta$PotentialShubhamNames), ]
+meta$Sex <- factor(meta$Sex)
+meta$Treatment <- factor(meta$Treatment)
+design <- model.matrix(~ Treatment * Sex, data = meta)
+fit <- lmFit(protein_matrix, design)
+fit <- eBayes(fit)
+
+coef_names <- colnames(design)
+treatment_coef <- which(coef_names == "TreatmentTAM")
+interaction_coef <- which(coef_names == "TreatmentTAM:Sexmale")
+
+C_overall <- rep(0, ncol(design))
+C_overall[treatment_coef] <- 1
+C_overall[interaction_coef] <- 0.5
+
+C_interaction <- rep(0, ncol(design))
+C_interaction[interaction_coef] <- 1
+
+C_female <- rep(0, ncol(design))
+C_female[treatment_coef] <- 1
+
+C_male <- rep(0, ncol(design))
+C_male[treatment_coef] <- 1
+C_male[interaction_coef] <- 1
+
+fit_contrasts <- contrasts.fit( fit,contrasts = cbind(  Treatment_overall = C_overall,
+                                                        Treatment_x_Sex = C_interaction,
+                                                        Treatment_female = C_female,
+                                                        Treatment_male = C_male  ))
+
+fit_contrasts <- eBayes(fit_contrasts)
+results_Treatment <- topTable(fit_contrasts,coef = "Treatment_overall", number = Inf, adjust.method = "BH") %>%
+  rownames_to_column("Name") %>%
+  select(Name, logFC, P.Value, adj.P.Val) %>%
+  rename( logFC_Treatment = logFC,
+    pValue_Treatment = P.Value,
+    adj_pvalue_Treatment = adj.P.Val)
+
+results_Interaction <- topTable(fit_contrasts,coef = "Treatment_x_Sex", number = Inf, adjust.method = "BH")%>%
+  rownames_to_column("Name") %>%
+  select(Name, logFC, P.Value, adj.P.Val) %>%
+  rename(  logFC_Treatment_x_Sex = logFC,
+    pValue_Treatment_x_Sex = P.Value,
+    adj_pvalue_Treatment_x_Sex = adj.P.Val)
+
+results_Female <- topTable( fit_contrasts,  coef = "Treatment_female",number = Inf, adjust.method = "BH")%>%
+  rownames_to_column("Name") %>%
+  select(Name, logFC, P.Value, adj.P.Val) %>%
+  rename(  logFC_Treatment_female = logFC,
+    pValue_Treatment_female = P.Value,
+    adj_pvalue_Treatment_female = adj.P.Val  )
+
+results_Male <- topTable( fit_contrasts,coef = "Treatment_male",number = Inf, adjust.method = "BH")%>%
+  rownames_to_column("Name") %>%
+  select(Name, logFC, P.Value, adj.P.Val) %>%
+  rename(  logFC_Treatment_male = logFC,
+    pValue_Treatment_male = P.Value,
+    adj_pvalue_Treatment_male = adj.P.Val
+  )
+write.csv2(results_Treatment, file.path(proteom_output_pwd, "results_Treatment_overall.csv"), row.names = FALSE)
+write.csv2(results_Interaction, file.path(proteom_output_pwd, "results_Treatment_x_Sex.csv"), row.names = FALSE)
+write.csv2(results_Female, file.path(proteom_output_pwd, "results_Treatment_female.csv"), row.names = FALSE)
+write.csv2(results_Male, file.path(proteom_output_pwd, "results_Treatment_male.csv"), row.names = FALSE)
+results_Treatment <- results_Treatment
 
 
-p_volcano <- ggplot(Proteins,aes(x = logFC, y = -log10(adj_pvalue))) +
+
+Proteins <- Proteins %>%
+  left_join(results_Treatment, by = "Name") %>%
+  left_join(results_Interaction, by = "Name") %>%
+  left_join(results_Female, by = "Name") %>%
+  left_join(results_Male, by = "Name") %>%
+  mutate( Direction = case_when(
+      adj_pvalue_Treatment < 0.05 & logFC_Treatment > 1 ~ "Up",
+      adj_pvalue_Treatment < 0.05 & logFC_Treatment < -1 ~ "Down",
+      TRUE ~ "NS" ),
+    Direction_Male = case_when( adj_pvalue_Treatment_male < 0.05 & logFC_Treatment_male > 1 ~ "Up",
+      adj_pvalue_Treatment_male < 0.05 & logFC_Treatment_male < -1 ~ "Down",TRUE ~ "NS" ),
+    Direction_Female = case_when(
+      adj_pvalue_Treatment_female < 0.05 & logFC_Treatment_female > 1 ~ "Up",
+      adj_pvalue_Treatment_female < 0.05 & logFC_Treatment_female < -1 ~ "Down",
+      TRUE ~ "NS"  ),
+    Direction_Interaction = case_when(
+      adj_pvalue_Treatment_x_Sex < 0.05 & abs(logFC_Treatment_x_Sex) > 1 ~ "Different",
+      TRUE ~ "NS"  )
+  )
+# Volcano -----
+p_volcano <- ggplot(Proteins,aes(x = logFC_Treatment, y = -log10(pValue_Treatment))) +
   geom_point(aes(fill = Direction), alpha = 0.5, size = 3,stroke = 0.5,
               shape=21,color= "black") +
-  scale_fill_manual(values = c("blue","grey60","grey60" ,"firebrick")) +
+  scale_fill_manual(values = c("blue","grey60","firebrick")) +
   geom_vline(xintercept = c(-1,1), linetype = "dashed", color = "grey80") +
   geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey80") +
   labs( title = paste0("Volcano plot - Treatment"),
@@ -44,12 +138,17 @@ p_volcano <- ggplot(Proteins,aes(x = logFC, y = -log10(adj_pvalue))) +
                   aes(label = Name),
                   size = 2.5,
                   max.overlaps = 25) +
-  coord_cartesian(xlim = c(-4, 4), ylim = c(0, 11))
+  coord_cartesian(xlim = c(-4.5, 4.5), ylim = c(0, 15))
 
-print(p_volcano)
-ggsave(plot= p_volcano, filename= paste0("Prots_a_volcano.png"), width= 6, height = 9, dpi = 300, 
-       path =paste0(proteom_output_pwd))
+p_volcano
+ggsave(plot= p_volcano, filename= paste0("Prots_a_volcano.png"), width= 9, height = 9, dpi = 300, 
+       path =proteom_output_pwd)
 
+# Heatmap -----
+
+
+
+# Exploratory -----
 biological_oxidations=c("Nnmt","Cyp4a10","Gsta","Cyp2a4","Gstt2",
                         "Ugt1a9","Cyp2c29","Cyp3a11","Gstt1","Fmo2",
                         "Ugp2","Mgst3","Sult1c2","Sult1b1","Adh4")

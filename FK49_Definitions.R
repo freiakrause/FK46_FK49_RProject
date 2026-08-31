@@ -117,8 +117,8 @@ PATHS <- list(
     output_plots = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_Microbiome/Plots")
   ),
   proteomics = list(
-    input  = "D:/Data/Experiment2/Input",
-    output = "D:/Data/Experiment2/Output"
+    input  = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_FK46_Proteomics_Phosphoproteomics"),
+    output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_Proteomics")
   ),
   TEM = list(
     input  = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_TEM/QuPath"),

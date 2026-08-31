@@ -3,15 +3,14 @@ gc()
 library(tidyverse)
 source("FK49_Definitions.R")
 
-ExpId = "FK49" # Set to "FK49" or "FK46"
 
-output_pwd <-file.path(PATHS$Organs[[paste0(ExpId,"_output")]])
-load(file.path(PATHS$Organs[[paste0(ExpId,"_input")]],paste0(ExpId,"_Data_prepared.Rda")))
+output_pwd <-file.path(PATHS$Organs$output)
+load(file.path(PATHS$Organs$input,"FK49_Data_prepared.Rda"))
 data<- data%>%
- select(any_of(c("Animal", "Sex", "Treatment", "Weight", "Liver", "Fat", "Spleen", "Liver_rel", "Fat_rel", "Spleen_rel",
-        "Ascites.no.yes", "Tumor.no.yes", "wks_diet", "BATCH")))%>%
- {if (ExpId == "FK49") filter(.,!Animal=="EC1",!Animal=="EC2",!Animal=="EC3") else .} 
-stats<-read.csv2(file = file.path(output_pwd,paste0("/",ExpId,"_Organ_Weight_Statistics.csv")))
+ select(Animal, Sex, Treatment, Weight, Liver, Fat, Spleen, Liver_rel, Fat_rel, Spleen_rel,
+        Ascites.no.yes, Tumor.no.yes, wks_diet, BATCH)%>%
+ filter(!Animal=="EC1",!Animal=="EC2",!Animal=="EC2") 
+stats<-read.csv2(file = file.path(output_pwd,"Statistics/FK49_Organ_Weight_Statistics.csv"))
 
 
 # Dotplot Organ Weights --------------------------------------------------------------
@@ -63,12 +62,12 @@ do_organ_weight <- function(inputdata, statistics = NULL,value,
   
   ### Save Plots
   value_clean <- gsub("[^[:alnum:]_]", "_", value)
-  filename1 <- paste0(ExpId, "_", value_clean,".png")
+  filename1 <- paste0("FK49_", value_clean,".png")
   ggsave(filename = filename1, plot = p1, path = path_images, width = 4, height = 11, dpi = 300)
   
 # If there is Treatment Sex Interaction, then print plots for sexes also individually
 # #since i dont have that outcome i did not bother to include the automatic ptinting of the correct p value per sex
-  if (!is.na(p_interaction[1]) & p_interaction[1] < 0.05) {
+  if (!is.na(p_interaction) &p_interaction < 0.05) {
      plotting_stats <- d %>%group_by(Treatment,Sex) %>%
       summarise(Mean = mean(.data[[value]], na.rm = TRUE),
                 SD = sd(.data[[value]], na.rm = TRUE),.groups = "drop")
@@ -99,7 +98,7 @@ do_organ_weight <- function(inputdata, statistics = NULL,value,
       guides( shape = guide_legend(title = "Sex", order = 2 ,nrow = 2, byrow = TRUE),
               fill = guide_legend(title = "Treatment", order = 3,override.aes = list(shape = 21), nrow =2, byrow = TRUE),
               color = "none")
-    filename2 <- paste0(ExpId, "_", value_clean, "_Treatment_by_sex.png")
+    filename2 <- paste0("FK49_", value_clean, "_Treatment_by_sex.png")
     ggsave(filename = filename2, plot = p1, path = path_images, width = 4, height = 11, dpi = 300)
   }else{}
 
@@ -110,7 +109,7 @@ do_organ_weight(data, value = "Liver_rel", statistics=stats,  y_title = "Liver/B
 do_organ_weight(data, value = "Spleen_rel",statistics=stats,y_title= "Spleen/BW [%]",output_pwd)
 do_organ_weight(data, value = "Spleen",statistics=stats,y_title= "Spleen [mg]",output_pwd)
 do_organ_weight(data, value = "Liver",statistics=stats,y_title= "Liver [g]",output_pwd)
-if ("Fat" %in% names(data)) do_organ_weight(data, value = "Fat",statistics=stats,y_title= "Fat [g]",output_pwd)
-if ("Fat_rel" %in% names(data)) do_organ_weight(data, value = "Fat_rel",statistics=stats,y_title= "Fat/BW [%]",output_pwd)
+do_organ_weight(data, value = "Fat",statistics=stats,y_title= "Fat [g]",output_pwd)
+do_organ_weight(data, value = "Fat_rel",statistics=stats,y_title= "Fat/BW [%]",output_pwd)
 
 

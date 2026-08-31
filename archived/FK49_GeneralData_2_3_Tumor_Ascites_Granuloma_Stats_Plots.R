@@ -7,10 +7,8 @@ library(ggplot2)
 library(rlang)
 source("FK49_Definitions.R")
 
-ExpId = "FK46" # Set to "FK49" or "FK46"
-
-output_pwd <-file.path(PATHS$TAG[[paste0(ExpId,"_output")]])
-load(file.path(PATHS$TAG[[paste0(ExpId,"_input")]],paste0(ExpId,"_Data_prepared.Rda")))
+output_pwd <-file.path(PATHS$TAG$output)
+load(file.path(PATHS$TAG$input,"FK49_Data_prepared.Rda"))
 # do waffle works nicely bc I know that i have 28 animal, 14 in TAM and 14 in Ctrl, number of tiles per group is adjusted to that. 
 # If there are different numbers of animals per group, numbers need to be adjusted in tile positions
 
@@ -38,13 +36,9 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
   
   
   # Build waffle blocks
-  # Dynamic tile counts from data — works for any animal number per treatment
-  ctrl_max <- max(d$Count[d$Treatment == "Ctrl"], 0)
-  tam_max  <- max(d$Count[d$Treatment == "TAM"], 0)
-  max_tiles <- max(ctrl_max, tam_max)
-  tiles_per_block_ctrl = max_tiles
-  tiles_per_block_tam  = max_tiles
-  tiles_per_row <- 7 #max_tiles/2  # tiles per row for positioning
+  if(sex_to_use != "both"){
+  tiles_per_block_ctrl = 5  # if only one sex need lesser blocks
+  } else{tiles_per_block_ctrl= max(d$Count)} # ctrl comes first in plot, is going to fill up until max value
 
   
   ctrl_blocks <- d %>%
@@ -54,10 +48,15 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
   dummy_ctrl <- ctrl_blocks %>%
     mutate(value = pmax(tiles_per_block_ctrl - value, 0),   fill_type = "dummy") # dummy is here to fill ctrl side out to may d$count value
   
+  if(sex_to_use != "both"){
+    tiles_per_block_tam = 8
+  }else{tiles_per_block_tam = 14} # tam can max have 14 tiles
+  
   tam_blocks <- d %>%
     filter(Treatment == "TAM") %>%
     mutate(value = Count, fill_type = "TAM")
  
+  
   dummy_tam <- tam_blocks %>%
     mutate(value = pmax(tiles_per_block_tam - value, 0),   fill_type = "dummy")
   
@@ -86,10 +85,10 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
  waffle_data <- waffle_data %>%
     group_by(Treatment, Category) %>%
     mutate(tile_id = row_number(),
-           x = ((tile_id - 1) %% tiles_per_row) + 1,
-           y = ceiling(tile_id / tiles_per_row)) %>%
+           x = ((tile_id - 1) %% 7) + 1, #%% gibt ganz zahligen rest der division, 2%%7 2 da 2 nicht durch 7 teilbar.Bis 7 kommt immer die zahl raus, die getilet werden soll
+           y = ceiling(tile_id / 7)) %>% # if there are more than 7 it will get y biggger 1 so be in the next row
     ungroup() %>%
-    mutate( x = if_else( Treatment == "TAM", x + tiles_per_row, x ))
+    mutate( x = if_else(Treatment == "TAM",x + 7, x ))
  
 # Fisher test table -----
  fishers <- d %>%
@@ -142,15 +141,18 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
    )
  )
  
- write.csv2( fisher_results, file.path(path, paste0(ExpId, "_",nice_name, "_",sex_to_use, "_Fisher.csv")),
+ write.csv2( fisher_results, file.path(path, paste0("FK46_", nice_name, "_", sex_to_use, "_Fisher.csv")),  
              row.names = FALSE)
+ 
+ write.csv2( fisher_results, file.path(path, paste0("FK46_", nice_name, "_", sex_to_use, "_Fisher.csv")),
+   row.names = FALSE)
   # Waffle plot
   plot <- ggplot(waffle_data, aes(x = x, y = y, fill = fill_type)) +
     geom_tile(color = "white", linewidth = 0.8, width = 1, height = 1) +
     scale_fill_manual(values = c(Treatment_colors[c("Ctrl","TAM")], "dummy" = "white"),
                       labels = c("Ctrl"="Ctrl","TAM"="TAM","dummy"=""),
                       name= "Treatment") +
-    scale_x_continuous(breaks = c(tiles_per_row / 2, tiles_per_row * 1.5), labels = c("Ctrl", "TAM")) +
+    scale_x_continuous(breaks = c(3.5, 10.5),labels = c("Ctrl", "TAM")) +
     scale_y_continuous(breaks = NULL, labels = NULL ) +
     coord_equal() +
     facet_grid(Category ~ ., switch = "y", space = "free_y", labeller = label_wrap_gen(3)) +
@@ -176,9 +178,9 @@ do_waffle <- function(data, variable, sex_to_use=c("both"),params, order=NULL, p
   
   # Save plot
   
-  # filename1 <- paste0(ExpId, "_", nice_name, "_",sex_to_use,".svg")
+  # filename1 <- paste0("FK46_", nice_name, "_",sex_to_use,".svg")
   
-  filename2 <- paste0(ExpId, "_", nice_name, "_",sex_to_use,".png")
+  filename2 <- paste0("FK46_", nice_name, "_",sex_to_use,".png")
   
   if(sex_to_use != "both"){  
     w = 3 

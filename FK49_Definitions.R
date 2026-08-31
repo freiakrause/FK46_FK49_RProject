@@ -40,6 +40,15 @@ Diet_colors <- c("CDHFD" = "darkviolet" ,
 Batch_colors<-c("1"= "blue",
                 "2"= "red")
 
+Phylum_colors <- c(
+  "Firmicutes"       = "#B58AD0",
+  "Bacteroidetes"    = "#D99A55",
+  "Proteobacteria"   = "#72B56B",
+  "Actinobacteria"   = "#6FA8D8",
+  "Tenericutes"      = "#D88989",
+  "Patescibacteria"  = "#7FB8C8",
+  "Cyanobacteria"    = "#82B87A"
+)
 # Function to create directories
 create_output_folders <- function(base_path, folders) {
   for (folder in folders) {
@@ -55,7 +64,36 @@ create_output_folders <- function(base_path, folders) {
     }
   }
 }
-#Pathways
+# Function to group close timepoints (used in FK46 preprocessing)
+# Since batches were sometimes measured 1-2 days apart, this groups
+# timepoints within a tolerance and replaces them with the mean
+group_close_timepoints <- function(inputdata, tolerance = 0.4) {
+  unique_times <- sort(unique(inputdata$wks_diet))
+  groups <- list()
+
+  # Create groups of close values
+  while (length(unique_times) > 0) {
+    ref <- unique_times[1]
+    close_vals <- unique_times[abs(unique_times - ref) <= tolerance]
+    groups[[length(groups) + 1]] <- close_vals
+    unique_times <- setdiff(unique_times, close_vals)}
+
+  # Create a lookup table for replacements
+  replacements <- lapply(groups, function(g) {
+    rep(mean(g), length(g))}) %>% unlist()
+
+  value_map <- data.frame(
+    original = unlist(groups),
+    new = replacements)
+
+  # Join with original data
+  inputdata <- inputdata %>%
+    left_join(value_map, by = c("wks_diet" = "original")) %>%
+    mutate(wks_diet = ifelse(is.na(new), wks_diet, new)) %>%
+    select(-new)%>%
+    mutate(wks_diet = round(wks_diet,digits=1))
+  return(inputdata)
+}
 home <- normalizePath("~") # bc Windows does not start inuser dir but in user/documents dir
 parent <- dirname(home)
 PATHS <- list(
@@ -72,8 +110,11 @@ PATHS <- list(
     output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/BA")
   ),
   microbiome = list(
-    input  = "D:/Data/Experiment2/Input",
-    output = "D:/Data/Experiment2/Output"
+    input_16S    = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Microbiome/16S"),
+    input_meta   = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Microbiome/FK49_CD-HFD_13wks_Microbiome_Meta.csv"),
+    output       = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_Microbiome"),
+    output_stats = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_Microbiome/Statistics"),
+    output_plots = paste0(parent, "/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/FK49_Microbiome/Plots")
   ),
   proteomics = list(
     input  = "D:/Data/Experiment2/Input",
@@ -85,7 +126,7 @@ PATHS <- list(
   ),
   legendplex = list(
     FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Legendplex/02_generated"),
-    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/FK46_Legendplex"),
+    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/FK46_Legendplex/02_generated"),
     FK46_output =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/Legendplex"),
     FK49_output =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Legendplex")
   ),
@@ -93,7 +134,7 @@ PATHS <- list(
     FK49_output  =paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/NASH_Score"),
     FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
     FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/NASH_Score"),
-    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
+    FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData")
   ),
   exigo = list(
     FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData"),
@@ -115,12 +156,16 @@ PATHS <- list(
     input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
   ),
  TAG = list(
-   output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Tumor_Ascites_Granuloma"),
-   input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
+   FK49_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Tumor_Ascites_Granuloma"),
+   FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
+   FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/Tumor_Ascites_Granuloma"),
+   FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData")
  ),
  Organs = list(
-   output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Weight_Organs"),
-   input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
+   FK49_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/Weight_Organs"),
+   FK49_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
+   FK46_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/02_GeneratedData/Weight_Organs"),
+   FK46_input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK46_iALmice_high Fat diet 52 weeks 7d after injection/Analysis/01_RawData")
  ),
  BH_baseline = list(
    input = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData")
@@ -1064,4 +1109,23 @@ PARAMETERS$metabolomics <- list(
     "Allyl-isopropyl-acetylharnstoff" = "Allyl-isopropyl-acetylharnstof",
     "1,3,7-Trimethyl-8-(3-chlorostyryl)xanthine" = "1,3,7-Trimethyl-8-(3-chlorosty"
   )
+)
+
+# ============================================================
+# PARAMETERS$microbiome — FK49 16S rRNA microbiome analysis
+# ============================================================
+PARAMETERS$microbiome <- list(
+  tax_levels           = c("Phylum", "Class", "Order", "Family", "Genus"),
+  alpha_measures       = c("Observed", "Chao1", "Shannon", "Simpson", "InvSimpson"),
+  prevalence_threshold = 0.05,      # keep taxa present in >= 5% of samples
+  min_reads            = 2000,      # QC filter: remove samples below this
+  timepoints           = c("F1", "F2", "F3", "F4"),   # F5 excluded (sequencing failure)
+  da_methods           = c("ancombc2", "aldex2"),
+  fdr_method           = "BH",
+  fdr_threshold        = 0.05,
+  feces_order          = c("F1", "F2", "F3", "F4"),
+  feces_labels         = c(F1 = "-1 wks (ND)", F2 = "0 wks (ND)",
+                           F3 = "3 wks (CDHFD)", F4 = "7 wks (CDHFD)"),
+  diet_short_colors    = c(ND = "darkorange3", CDHFD = "darkviolet"),
+  target_genera        = c("Lactobacillus")  # hypothesis-driven targeted analysis
 )

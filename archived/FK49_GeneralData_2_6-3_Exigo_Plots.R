@@ -22,6 +22,7 @@ if(ExpID == "FK49"){
   
   }else if(ExpID == "FK46") {
   load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
+    print("I dont know how the data looks for FK46 at the moment")
     output_pwd = file.path(PATHS$exigo$FK46_output)
     param_list = PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
     stats <- read.csv2(file.path(output_pwd, "FK46_Exigo_Statistics.csv"))
@@ -206,7 +207,7 @@ p_cor <- pheatmap(
   legend_labels = c("-1", "-0.5", "0", "0.5", "1")
 )
 
-ggsave( filename = paste0(ExpID, "_Exigo_Correlation_Animals.png"),
+ggsave( filename = "FK49_Exigo_Correlation_Animals.png",
         plot = p_cor, path = file.path(output_pwd),
         width = 5.5,height = 5, dpi = 300,bg = "white")
 ### -----
@@ -254,25 +255,24 @@ p_cor <- pheatmap(
   # legend_labels = c("-1", "-0.5", "0", "0.5", "1")
 )
 
-ggsave( filename = paste0(ExpID, "_Exigo_Correlation_Parameters.png"),
+ggsave( filename = "FK49_Exigo_Correlation_Parameters.png",
         plot = p_cor, path = file.path(output_pwd),
         width = 8,height = 5, dpi = 300,bg = "white") 
 
 ### 
 # Include censoring for z score scaled heatmapt for overview -----
-exigo_cols_for_heatmap <- if (ExpID == "FK46") PARAMETERS$EXIGO$FK46_Exigo_cols else PARAMETERS$EXIGO$FK49_Exigo_cols
-cens_cols <- paste0(exigo_cols_for_heatmap, "_censored")
-direction_cols <- paste0(exigo_cols_for_heatmap, "_direction")
+cens_cols <- paste0(PARAMETERS$EXIGO$FK49_Exigo_cols, "_censored")
+direction_cols <- paste0(PARAMETERS$EXIGO$FK49_Exigo_cols, "_direction")
 
 cens_mat <- d1 %>% select(all_of(cens_cols)) %>% as.matrix()
 rownames(cens_mat) <- d1$Animal
 cens_mat <- t(cens_mat)
-rownames(cens_mat) <- exigo_cols_for_heatmap
+rownames(cens_mat) <- PARAMETERS$EXIGO$FK49_Exigo_cols
 
 direction_mat <- d1 %>% select(all_of(direction_cols)) %>% as.matrix()
 rownames(direction_mat) <- d1$Animal
 direction_mat <- t(direction_mat)
-rownames(direction_mat) <- exigo_cols_for_heatmap
+rownames(direction_mat) <- PARAMETERS$EXIGO$FK49_Exigo_cols
 # Generate z scor scaled heatmapt with all exigo parameters -----
 # Scale data
 d_scaled <- t(scale(t(d_mat))) # z score scaling

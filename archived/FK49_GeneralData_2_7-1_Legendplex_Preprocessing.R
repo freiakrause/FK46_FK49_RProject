@@ -59,7 +59,7 @@ if (ExpID=="FK49") {
 }  else if (ExpID == "FK46"){
   output_pwd <- file.path(PATHS$legendplex$FK46_output)
   
-  data_raw <-read.csv2(paste0(PATHS$legendplex$FK46_input,"/BH21.5_FK46_LegendplexMouseInflammation_report_2025-11-19.csv"))
+  data_raw <-read.csv2(paste0(PATHS$legendplex$FK46_input,"/BH21.5_FK46 Legendplex_report_2025-11-19.csv"))
 } else{
 print("Let me set a folder Path and define ExpID and Folderpath")}
 cytokines <-PARAMETERS$Legendplex$cytokines
@@ -67,22 +67,7 @@ cytokines <-PARAMETERS$Legendplex$cytokines
 # data wrangling (clean up the legendplex output) ------------------------------
 data_raw$well <- sub("_.*", "", data_raw$well) 
 data_raw <- data_raw %>% rename(IDs = well)
-if(ExpID== "FK46"){
-  data_raw <- data_raw %>%
-  mutate(
-    replicate = case_when(
-      sample %in% c("#120T_1", "#121_1", "#122_1", "#123_1", "#124_1") ~ 1,
-      sample %in% c("#120T_2", "#121_2", "#122_2", "#123_2", "#124_2") ~ 2,
-      TRUE ~ replicate),
-    sample = case_when(
-      sample %in% c("#120T_1", "#120T_2") ~ "Sample27",
-      sample %in% c("#121_1", "#121_2") ~ "Sample28",
-      sample %in% c("#122_1", "#122_2") ~ "Sample29",
-      sample %in% c("#123_1", "#123_2") ~ "Sample30",
-      sample %in% c("#124_1", "#124_2") ~ "Sample31",
-      TRUE ~ sample )
-  )
-}
+
 data_analytes <- data_raw %>% 
   filter(sample_type != "Standard") %>%       # remove the standard values
   mutate(  Animal = gsub("#", "", IDs),
@@ -105,7 +90,7 @@ data_analytes <- data_raw %>%
               names_glue  = "{parameter}_{.value}") %>%
       rename_with(~ str_replace(., "_numeric_value$", ""))                      #the colmn with only the cytokine name is the numeric value (wo censoring info)
 
-
+ 
 data_long <- data_analytes %>%
   pivot_longer(
     cols = all_of(cytokines),    # your vector of cytokine column names
@@ -220,17 +205,8 @@ ggplot(qc_failures,
   )
 
 # Optionally remove obviously erroneous replicates -----------------------------
-# Based on these results I decided to kick out #152_2 (BH21.4 specific, FK49 only)
-if (ExpID == "FK49") {
-  data_analytes <- data_analytes %>% filter(!sample_label =="202_Sample28",!Animal == "146")
-}
-if (ExpID == "FK46") {
-  data_analytes <- data_analytes %>% filter(
-    !(sample_label == "99_Sample8" & replicate == 2),
-    !(sample_label == "93_Sample1" & replicate == 1),
-    !(sample_label == "114_Sample22" & replicate == 1)
-  )
-}
+# Based on these results I decided to kick out #152_2 (BH21.4 specific)
+data_analytes <- data_analytes %>% filter(!sample_label =="202_Sample28",!Animal == "146")
 # data analysis ----------------------------------------------------------------
 data_sum <- data_analytes %>%
   group_by(Animal) %>%
@@ -243,10 +219,8 @@ data_sum <- data_analytes %>%
     .groups = "drop"
               )
 load(file.path(dirname(dirname(output_pwd)),paste0("/01_RawData/",ExpID,"_Data_prepared.Rda")))
-meta<-data%>%select(Animal, DOW, KILL.DATE,Sex,Treatment,BATCH,-any_of("TV"),Tumor.no.yes,Ascites.no.yes,wks_diet)%>%filter(DOW== KILL.DATE)
-meta_T <- meta %>%filter(Animal %in% c(120, 94, 95)) %>%mutate(Animal = paste0(Animal, "T"), Treatment = "Tumor")
-meta_a<-bind_rows(meta,meta_T)
-data<- left_join(data_sum,meta_a,by= "Animal") #%>%filter(!Animal =="164") #164 is
+meta<-data%>%select(Animal, DOW, KILL.DATE,Sex,Treatment,BATCH,-TV,Tumor.no.yes,Ascites.no.yes,wks_diet)%>%filter(DOW== KILL.DATE)
+data<- left_join(data_sum,meta,by= "Animal") #%>%filter(!Animal =="164") #164 is
 write.csv(data,file= file.path(dirname(dirname(output_pwd)),paste0("/01_RawData/",ExpID,"_Legendplex_clean.csv")))
 saveRDS(data,file= file.path(dirname(dirname(output_pwd)),paste0("/01_RawData/",ExpID,"_Legendplex_clean.rds")))
 rm(list=ls())

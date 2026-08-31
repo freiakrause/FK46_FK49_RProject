@@ -1,33 +1,26 @@
-rm=(list=ls())
+rm(list=ls())
 gc()
 library(tidyverse)
 library(NADA2)
 library(emmeans)
-library(car) # for Type III ANOVA via car::Anova()
 source("FK49_Definitions.R")
 ExpID= "FK49"   # Decide if you want to load data from FK46 or FK49
- 
-if(ExpID == "FK49"){
-   load(file = file.path(PATHS$exigo$FK49_input,  "FK49_Exigo_prepared.Rda"))
-   param_list=PARAMETERS$EXIGO$FK49_Exigo_Comprehensive_Panel
-   d1 <- d1
-   output_pwd = file.path(PATHS$exigo$FK49_output)
-   }else if(ExpID == "FK46") {
-     load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
-     param_list=PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
-     output_pwd = file.path(PATHS$exigo$FK46_output)
-     
-   }else if(ExpID == "BH15") {
-     load(file = file.path(PATHS$exigo$FK49_input,  "FK49_Exigo_prepared.Rda"))
-     d1<-baseline_data
-     param_list=  param_list=PARAMETERS$EXIGO$FK49_Exigo_Comprehensive_Panel
-     output_pwd = file.path(PATHS$exigo$BH15_output)
-     }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
-     }
 
-analyze_exigo_parameter <- function(inputdata,value,batch = "ALL",reference_batch = NULL) {
- #in preprocessing i generated colms for censoring and direction 
- ## to not write a list for their names it is easier to give the names to the function this way 
+
+if(ExpID == "FK49"){
+ data<- readRDS (file = file.path(dirname(dirname(PATHS$legendplex$FK49_output)),  "01_RawData/FK49_Legendplex_clean.Rds"))
+  cytokine_list<-PARAMETERS$Legendplex$cytokine_list  
+  output_pwd = file.path(PATHS$legendplex$FK49_output)
+}else if(ExpID == "FK46") {
+  # load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
+  # param_list=  param_list=PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
+  # output_pwd = file.path(PATHS$exigo$FK46_output)
+  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
+}
+
+analyze_legendplex_parameter <- function(inputdata,value,batch = "ALL",reference_batch = NULL) {
+  #in preprocessing i generated colms for censoring and direction 
+  ## to not write a list for their names it is easier to give the names to the function this way 
   censored_col <- paste0(value, "_censored")
   direction_col <- paste0(value, "_direction")
   d <- inputdata %>%filter(!is.na(.data[[value]]))
@@ -84,65 +77,89 @@ analyze_exigo_parameter <- function(inputdata,value,batch = "ALL",reference_batc
   )
   #Statistics for censored data -----
   if (n_censored > 0) {
-    uncensored <- d %>% filter(!cens_logical)
-    sufficient <- nrow(uncensored) >= 4 & all(uncensored %>% group_by(Treatment) %>% summarise(n_dist = n_distinct(value_numeric), .groups = "drop") %>% pull(n_dist) >= 2)
+    uncensored <- d %>%filter(!cens_logical) #the single values that got FALSE in cens logical are not censored
+    sufficient <- nrow(uncensored) >= 4 & # if more or equal to 4 values are uncensored test can be run
+      all(uncensored %>% group_by(Treatment) %>%
+            summarise(n_dist = n_distinct(value_numeric), .groups = "drop") %>%
+            pull(n_dist) >= 2)                 # 2 values per treatment
     
     if (sufficient) {
-      d <- d %>% mutate(Treatment = factor(Treatment, levels = c("Ctrl", "TAM")), Sex = factor(Sex, levels = c("female", "male")))
+      if (sufficient) {
+        
+        d <- d %>% mutate(Treatment = factor(Treatment, levels = c("Ctrl", "TAM")),
+                          Sex = factor(Sex, levels = c("female", "male")))
+        
+        cen_result <- capture.output(suppressWarnings(with(d,cen2way(ifelse(cens_logical, value_numeric * 2, value_numeric),
+                                                                     cens_logical, Treatment, Sex, LOG = TRUE, interact = TRUE))))
+        p_lines <- cen_result[grep("Treatment|Sex|interaction", cen_result)]
+        p_values <- as.numeric(sub(".*\\s([0-9]+\\.[0-9]+)$", "\\1", p_lines))
+        
+        result$method <- "cen2way"
+        result$p_treatment <- p_values[3]
+        
+        #  Effect size: Geometric Mean Ratio (TAM / Ctrl)-----
+        y1 <- ifelse(d$cens_logical, d$value_numeric * 2, d$value_numeric)
+        y2 <- d$cens_logical
+        e <- ifelse(d$Treatment == "Ctrl", 1, -1)
+        s <- ifelse(d$Sex == "female", 1, -1)
+        int <- e * s
+        
+        lnvar <- log(y1)
+        fconst <- max(lnvar, na.rm = TRUE)
+        flip.log <- fconst + 1 - lnvar
+        detect <- !y2
+        
+        logCensData <- survival::Surv(flip.log, detect, type = "right")
+        cen_model <- survival::survreg(logCensData ~ e + s + int, dist = "gaussian")
+        
+        # Reverse the flipping used by cen2way()
+        beta <- -coef(cen_model)
+        beta[1] <- fconst + 1 + beta[1]
+        
+        # log geometric means, marginal over Sex
+        b0 <- beta["(Intercept)"]
+        bT <- beta["e"]
+        bS <- beta["s"]
+        bI <- beta["int"]
+        
+        log_GM_ctrl <- mean(c(b0 + bT + bS + bI, b0 + bT - bS - bI))
+        log_GM_tam <- mean(c(b0 - bT + bS - bI, b0 - bT - bS + bI))
+        
+        # geometric means
+        GM_ctrl <- exp(log_GM_ctrl)
+        GM_tam <- exp(log_GM_tam)
+        
+        log_GMR <- -2 * beta["e"]
+        GMR <- exp(log_GMR)
+        # 95% CI for log(GMR)
+        se_b_tr <- sqrt(vcov(cen_model)["e", "e"])
+        se_log_GMR <- 2 * se_b_tr
+        
+        # Back-transform CI to GMR scale
+        CI_low <- exp(log_GMR - 1.96 * se_log_GMR)
+        CI_high <- exp(log_GMR + 1.96 * se_log_GMR)
+        
+        # Store results
+        result$effect_CI_low <- CI_low
+        result$effect_CI_high <- CI_high
+        
+        # store results
+        result$mean_ctrl <- GM_ctrl
+        result$mean_tam <- GM_tam
+        
+        result$effect_size <- GMR
+        result$effect_size_type <- "GMR"
+      }
       
-      cen_result <- capture.output(suppressWarnings(with(d, cen2way(ifelse(cens_logical, value_numeric * 2, value_numeric), cens_logical, Treatment, Sex, LOG = TRUE, interact = TRUE))))
-      p_lines <- cen_result[grep("Treatment|Sex|interaction", cen_result)]
-      p_values <- as.numeric(sub(".*\\s([0-9]+\\.[0-9]+)$", "\\1", p_lines))
-      
-      result$method <- "cen2way"
-      result$p_treatment <- p_values[3]
-      
-      y1 <- ifelse(d$cens_logical, d$value_numeric * 2, d$value_numeric)
-      y2 <- d$cens_logical
-      e <- ifelse(d$Treatment == "Ctrl", 1, -1)
-      s <- ifelse(d$Sex == "female", 1, -1)
-      int <- e * s
-      
-      lnvar <- log(y1)
-      fconst <- max(lnvar, na.rm = TRUE)
-      flip.log <- fconst + 1 - lnvar
-      detect <- !y2
-      logCensData <- survival::Surv(flip.log, detect, type = "right")
-      cen_model <- survival::survreg(logCensData ~ e + s + int, dist = "gaussian")
-      
-      beta <- -coef(cen_model)
-      beta[1] <- fconst + 1 + beta[1]
-      b0 <- beta["(Intercept)"]; bT <- beta["e"]; bS <- beta["s"]; bI <- beta["int"]
-      
-      log_GM_ctrl <- mean(c(b0 + bT + bS + bI, b0 + bT - bS - bI))
-      log_GM_tam <- mean(c(b0 - bT + bS - bI, b0 - bT - bS + bI))
-      GM_ctrl <- exp(log_GM_ctrl)
-      GM_tam <- exp(log_GM_tam)
-      log_GMR <- -2 * beta["e"]
-      GMR <- exp(log_GMR)
-      # 95% CI for log(GMR)
-      se_b_tr <- sqrt(vcov(cen_model)["e", "e"])
-      se_log_GMR <- 2 * se_b_tr
-      
-      # Back-transform CI to GMR scale
-      CI_low <- exp(log_GMR - 1.96 * se_log_GMR)
-      CI_high <- exp(log_GMR + 1.96 * se_log_GMR)
-      
-      # Store results
-      result$effect_CI_low <- CI_low
-      result$effect_CI_high <- CI_high
-      result$mean_ctrl <- GM_ctrl
-      result$mean_tam <- GM_tam
-      result$effect_size <- GMR
-      result$effect_size_type <- "GMR"
     } else {
       result$method <- "cen2way_not_performed"
-      }
-   } else {
+    }
+    
+  } else {
     # Statistics for uncensored data -----
-    model <- lm(value_numeric ~ Treatment * Sex, data = d, contrasts = list(Treatment = contr.sum, Sex = contr.sum)) # sum-to-zero contrasts required for valid Type III tests
-    # ANOVA (Type III sum of squares; base anova() gives sequential Type I)
-    anova_result <- car::Anova(model, type = 3)
+    model <- lm(value_numeric ~ Treatment * Sex, data = d)
+    # ANOVA
+    anova_result <- anova(model)
     #ANOVA effect size die model struktur berücksichtigt
     
     p_treatment <- anova_result["Treatment", "Pr(>F)"]
@@ -186,10 +203,10 @@ analyze_exigo_parameter <- function(inputdata,value,batch = "ALL",reference_batc
 }
 
 
-results_list <- lapply(param_list,  function(x) {analyze_exigo_parameter(inputdata = d1, value = x$value, batch = "ALL" ) }) # perform the function over the paramter list and put it in list
+results_list <- lapply(cytokine_list,  function(x) {analyze_legendplex_parameter(inputdata = data, value = x$value, batch = "ALL" ) }) # perform the function over the paramter list and put it in list
 StatsOutput <- bind_rows(results_list) # make tibble out of the list 
 StatsOutput <- StatsOutput %>%mutate(p_adj = p.adjust(p_treatment,method = "fdr")) #adjust pvalues
-write.csv2(StatsOutput,file = file.path(output_pwd, paste0(ExpID,"_Exigo_Statistics.csv")),row.names = FALSE)
+write.csv2(StatsOutput,file = file.path(output_pwd, paste0(ExpID,"_Legendplex_Statistics.csv")),row.names = FALSE)
 
 rm=(list=ls())
 gc()

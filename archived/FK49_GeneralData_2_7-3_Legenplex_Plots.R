@@ -14,29 +14,23 @@ ExpID= "FK49"   # Decide if you want to load data from FK46 or FK49
 # in fk49 i preprocessed FK49 data and BH15 baseline data in the same preprocessing and saved fk49 as d1 and BH15 as baseline_data. 
 # to be clear about the data used, with ExpID i have to specify which exp is going to be plotted and according to this d1 and paths are defined
 if(ExpID == "FK49"){
-  load(file = file.path(PATHS$exigo$FK49_input,  "FK49_Exigo_prepared.Rda"))
-  d1 <- d1
-  output_pwd = file.path(PATHS$exigo$FK49_output)
-  param_list = PARAMETERS$EXIGO$FK49_Exigo_Comprehensive_Panel
-  stats <- read.csv2(file.path(output_pwd, "FK49_Exigo_Statistics.csv"))
+  output_pwd = file.path(PATHS$legendplex$FK49_output)
+  d1<-readRDS(file = file.path(dirname(dirname(output_pwd)),  "01_RawData/FK49_Legendplex_clean.Rds"))
+    param_list = PARAMETERS$Legendplex$cytokine_list
+  stats <- read.csv2(file.path(output_pwd, "FK49_Legendplex_Statistics.csv"))
   
-  }else if(ExpID == "FK46") {
-  load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
-    output_pwd = file.path(PATHS$exigo$FK46_output)
-    param_list = PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
-    stats <- read.csv2(file.path(output_pwd, "FK46_Exigo_Statistics.csv"))
-    
-    }else if(ExpID == "BH15") {
-      load(file = file.path(PATHS$exigo$FK49_input,  "FK49_Exigo_prepared.Rda"))
-      d1 <- baseline_data 
-      output_pwd = file.path(PATHS$exigo$BH15_output)
-      param_list = PARAMETERS$EXIGO$FK49_Exigo_Comprehensive_Panel
-      stats <- read.csv2(file.path(output_pwd, "BH15_Exigo_Statistics.csv"))
-      
-  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
-  }
-# Dotplot Exigo Panel --------------------------------------------------------------
-do_Exigo <- function(inputdata, value, batch = "2", sex = "both",
+}else if(ExpID == "FK46") {
+  output_pwd = file.path(PATHS$legendplex$FK46_output)
+  
+   d1<-readRDS(file = file.path(dirname(dirname(output_pwd)), "01_RawData/FK46_Legendplex_clean.Rds"))
+  param_list = PARAMETERS$Legendplex$cytokine_list
+  stats <- read.csv2(file.path(output_pwd, "FK46_Legendplex_Statistics.csv"))
+}else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
+}
+str(d1)
+str(stats)
+# Dotplot legendplex Panel --------------------------------------------------------------
+do_legendplex <- function(inputdata, value, batch = "2", sex = "both",
                      y_title, path_images,
                      normal_range = NULL, lowlimit = NULL, hilimit = NULL,
                      p_value_override = NULL) {
@@ -65,7 +59,7 @@ do_Exigo <- function(inputdata, value, batch = "2", sex = "both",
       )
     )
   
-
+  
   
   #Generate limits for plotting from parameter values
   y_vals <- d$value_numeric
@@ -73,7 +67,7 @@ do_Exigo <- function(inputdata, value, batch = "2", sex = "both",
   y_min  <- min(y_vals, na.rm = TRUE)
   y_pos <- y_max + 0.15 * (y_max - y_min)
   y_pos <- if (is.finite(y_max) & y_max > y_min) {y_max + 0.15 * (y_max - y_min)}
-           else {y_max * 1.05}
+  else {y_max * 1.05}
   
   p1 <- ggplot(d, aes(x = Treatment, y = .data[[value]])) +
     stat_summary(fun = mean, geom = "bar", aes(fill = Treatment,color = Treatment),alpha = 0.5, width = 0.75) +
@@ -112,17 +106,17 @@ do_Exigo <- function(inputdata, value, batch = "2", sex = "both",
           panel.grid = element_blank() ) +
     guides(shape = guide_legend(title = "Sex", order = 2, nrow = 1, byrow = TRUE),
            color = guide_legend(title = "Censoring", order = 4, nrow = 1, byrow = TRUE),
-            fill =guide_legend(title = "Group", order = 3, nrow = 1, byrow = TRUE, ))
-
+           fill =guide_legend(title = "Group", order = 3, nrow = 1, byrow = TRUE, ))
+  
   # SAFE reference lines
   if (!is.null(normal_range) && all(is.finite(normal_range)))
     p1 <- p1 + geom_hline(yintercept = normal_range, linetype = "dotted")
   
- # if (!is.null(lowlimit) && length(lowlimit) > 0 && is.finite(lowlimit[1]))
- #   p1 <- p1 + geom_hline(yintercept = lowlimit[1], linetype = "dashed", color = "red")
+  # if (!is.null(lowlimit) && length(lowlimit) > 0 && is.finite(lowlimit[1]))
+  #   p1 <- p1 + geom_hline(yintercept = lowlimit[1], linetype = "dashed", color = "red")
   
- # if (!is.null(hilimit) && length(hilimit) > 0 && is.finite(hilimit[1]))
- #   p1 <- p1 + geom_hline(yintercept = hilimit[1], linetype = "dashed", color = "blue")
+  # if (!is.null(hilimit) && length(hilimit) > 0 && is.finite(hilimit[1]))
+  #   p1 <- p1 + geom_hline(yintercept = hilimit[1], linetype = "dashed", color = "blue")
   
   
   return(list(
@@ -136,7 +130,7 @@ plots <- lapply(param_list, function(p) {
   stat_row <- stats %>% filter(parameter == p$value)
   ExpID=ExpID
   # create plot
-  res <- do_Exigo(
+  res <- do_legendplex(
     inputdata = d1,
     value = p$value,
     batch = "ALL",
@@ -150,8 +144,8 @@ plots <- lapply(param_list, function(p) {
   # add adjusted p-value
   p_final <- res$plot_raw +
     annotate( "text", x = 1.5,y = res$y_pos,
-      label = paste0( "adj p = ", format.pval(stat_row$p_adj, digits = 3) ),
-      size = 5.5, fontface = "italic" )
+              label = paste0( "adj p = ", format.pval(stat_row$p_adj, digits = 3) ),
+              size = 5.5, fontface = "italic" )
   
   # filename
   fname_val <- gsub("[^[:alnum:]_]", "_", p$value)
@@ -159,20 +153,19 @@ plots <- lapply(param_list, function(p) {
   
   # save final plot
   ggsave( filename = filename,  plot = p_final, path = output_pwd,width = 4,height = 11,dpi = 300 )
-    # return plot
+  # return plot
   p_final
 })
 
 # With EHatmapts i want to viszualise overview. so that i do not only report the significan results but give overview of what was looked at
 # Generate Matrix for Heatmaps -----
 if(ExpID == "FK49"){
-  d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols)) %>% as.matrix()
-  }else if(ExpID == "FK46") {
-  d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK46_Exigo_cols)) %>% as.matrix()
-  }else if(ExpID == "BH15") {
-  d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols)) %>% as.matrix()
-  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
+  d_mat <- d1 %>% select(all_of(PARAMETERS$Legendplex$cytokines)) %>% as.matrix()
+}else if(ExpID == "FK46") {
+ #
+}else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
 }
+
 rownames(d_mat) <- d1$Animal
 d_mat <- t(d_mat)
 ann <- data.frame(Treatment = d1$Treatment, Sex = d1$Sex)
@@ -180,7 +173,7 @@ rownames(ann) <- d1$Animal
 
 # Correlation heatmap based on original numerical values -----
 cor_spearman <- cor(d_mat, method = "spearman", use = "pairwise.complete.obs")
-
+range(cor_spearman, na.rm = TRUE)
 p_cor <- pheatmap(
   cor_spearman,
   cluster_rows = TRUE,
@@ -193,30 +186,29 @@ p_cor <- pheatmap(
   annotation_col = ann,
   color = colorRampPalette(c("blue", "white", "red"))(100),
   breaks = seq(-1, 1, length.out = 101),  annotation_colors = list(Treatment = Treatment_colors[c("Ctrl", "TAM")],   Sex = Sex_colors),
+  main = paste0("Correlation HeatMap ", ExpID),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
   angle_col = 90,
   gaps_row = 3,
-  display_numbers = FALSE,
   show_rownames = F,
   show_colnames = F,
-  number_format = "%.1f",
-  legend_breaks = c(-1, -0.5, 0, 0.5, 1),
-  legend_labels = c("-1", "-0.5", "0", "0.5", "1")
+  display_numbers = FALSE#,
+  # number_format = "%.2f",
+  # legend_breaks = c(-1, -0.5, 0, 0.5, 1),
+  # legend_labels = c("-1", "-0.5", "0", "0.5", "1")
 )
 
-ggsave( filename = paste0(ExpID, "_Exigo_Correlation_Animals.png"),
+ggsave( filename = "FK49_legendplex_Correlation_Animals.png",
         plot = p_cor, path = file.path(output_pwd),
-        width = 5.5,height = 5, dpi = 300,bg = "white")
+        width = 8,height = 5, dpi = 300,bg = "white")
 ### -----
-#  -----
+# Generate Matrix for Heatmaps -----
 if(ExpID == "FK49"){
-  d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols)) %>% as.matrix()
+  d_mat <- d1 %>% select(all_of(PARAMETERS$Legendplex$cytokines)) %>% as.matrix()
 }else if(ExpID == "FK46") {
-  d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK46_Exigo_cols)) %>% as.matrix()
-}else if(ExpID == "BH15") {
-    d_mat <- d1 %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols)) %>% as.matrix()
+  #
 }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
 }
 
@@ -239,9 +231,7 @@ p_cor <- pheatmap(
   fontsize_col = 9,
   fontsize_number = 8,
   color = colorRampPalette(c("blue", "white", "red"))(100),
-  breaks = seq(-1, 1, length.out = 101),
-
-  border_color = "black",
+  breaks = seq(-1, 1, length.out = 101),  border_color = "black",
   cellwidth = 10,
   cellheight = 10,
   angle_col = 90,
@@ -254,26 +244,26 @@ p_cor <- pheatmap(
   # legend_labels = c("-1", "-0.5", "0", "0.5", "1")
 )
 
-ggsave( filename = paste0(ExpID, "_Exigo_Correlation_Parameters.png"),
+ggsave( filename = "FK49_legendplex_Correlation_Cytokines.png",
         plot = p_cor, path = file.path(output_pwd),
-        width = 8,height = 5, dpi = 300,bg = "white") 
+        width = 8,height = 5, dpi = 300,bg = "white")
 
-### 
+
+####
 # Include censoring for z score scaled heatmapt for overview -----
-exigo_cols_for_heatmap <- if (ExpID == "FK46") PARAMETERS$EXIGO$FK46_Exigo_cols else PARAMETERS$EXIGO$FK49_Exigo_cols
-cens_cols <- paste0(exigo_cols_for_heatmap, "_censored")
-direction_cols <- paste0(exigo_cols_for_heatmap, "_direction")
+cens_cols <- paste0(PARAMETERS$Legendplex$cytokines, "_censored")
+direction_cols <- paste0(PARAMETERS$Legendplex$cytokines, "_direction")
 
 cens_mat <- d1 %>% select(all_of(cens_cols)) %>% as.matrix()
 rownames(cens_mat) <- d1$Animal
 cens_mat <- t(cens_mat)
-rownames(cens_mat) <- exigo_cols_for_heatmap
+rownames(cens_mat) <- PARAMETERS$Legendplex$cytokines
 
 direction_mat <- d1 %>% select(all_of(direction_cols)) %>% as.matrix()
 rownames(direction_mat) <- d1$Animal
 direction_mat <- t(direction_mat)
-rownames(direction_mat) <- exigo_cols_for_heatmap
-# Generate z scor scaled heatmapt with all exigo parameters -----
+rownames(direction_mat) <- PARAMETERS$Legendplex$cytokines
+# Generate z scor scaled heatmapt with all legendplex parameters -----
 # Scale data
 d_scaled <- t(scale(t(d_mat))) # z score scaling
 
@@ -292,10 +282,10 @@ column_order <- order(ann$Treatment, ann$Sex)
 row_annot <- stats %>%
   select(parameter, p_adj) %>%
   mutate( adj.p = cut(
-      p_adj,
-      breaks = c(-Inf, 0.0001, 0.001, 0.01, 0.05, Inf),
-      labels = c("<0.0001", "0.0001–0.001", "0.001–0.01", "0.01–0.05", ">0.05"),
-      include.lowest = TRUE ) ) %>%
+    p_adj,
+    breaks = c(-Inf, 0.0001, 0.001, 0.01, 0.05, Inf),
+    labels = c("<0.0001", "0.0001–0.001", "0.001–0.01", "0.01–0.05", ">0.05"),
+    include.lowest = TRUE ) ) %>%
   select(parameter, adj.p) %>%
   tibble::column_to_rownames("parameter")
 
@@ -350,6 +340,7 @@ d_s <- pheatmap(
   color = heatmap_colors,
   breaks = heatmap_breaks,
   annotation_colors = list(Treatment = Treatment_colors[c("Ctrl", "TAM")], Sex = Sex_colors, adj.p = p_color_list),
+  main = paste0("Scaled HeatMap ", ExpID),
   border_color = "black",
   cellwidth = 10,
   cellheight = 10,
@@ -362,8 +353,8 @@ d_s <- pheatmap(
   legend_labels = c("Below LOD", "-2", "0", "2", "Above ULOQ")
 )
 
-ggsave(  filename = paste0(ExpID, "_Exigo_scaled.png"),
-  plot = d_s, path = paste0(output_pwd),width = 6,height = 5, dpi = 300,bg = "white")
+ggsave(  filename = paste0(ExpID, "_Legendplex_scaled.png"),
+         plot = d_s, path = paste0(output_pwd),width = 8,height = 5, dpi = 300,bg = "white")
 
 
 # Generate df for effect sizes -----
@@ -392,26 +383,23 @@ p_gmr <- ggplot(stats_gmr,aes(x = effect_size, y = parameter)) +
   scale_y_discrete(limits = rev(p_order)) +
   labs( x = "Geometric mean ratio (TAM / Ctrl)",y = NULL) +
   theme_classic()
-ggsave(p_lm, file= paste0(ExpID,"_Exigo_Effect_size_LM.png"),dpi=300, width=5, height=3,path=output_pwd)
-ggsave(p_gmr, file=paste0(ExpID,"_Exigo_Effect_size_Cens.png"),dpi=300, width=5, height=3,path=output_pwd)
+ggsave(p_lm, file= paste0(ExpID,"_Legendplex_Effect_size_LM.png"),dpi=300, width=5, height=3,path=output_pwd)
+ggsave(p_gmr, file=paste0(ExpID,"_Legendplex_Effect_size_Cens.png"),dpi=300, width=5, height=3,path=output_pwd)
 
 # Combine effect size plots -----
 p_effect <- p_lm + p_gmr +patchwork::plot_layout( widths = c(1, 1))
 p_effect
-ggsave(p_effect, file= paste0(ExpID,"_Exigo_Effect_size_LM+Cens.png"),dpi=300, width=6, height=3,path=output_pwd)
+ggsave(p_effect, file= paste0(ExpID,"_Legendplex_Effect_size_LM+Cens.png"),dpi=300, width=6, height=3,path=output_pwd)
 
 
 # plot PCAs --------------------------------------------------------------------
 if(ExpID == "FK49"){
-  pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))%>%drop_na()
-  numerical_d <- pca_data %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))
-  }else if(ExpID == "FK46") {
-    pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$EXIGO$FK46_Exigo_cols))%>%drop_na()
-    numerical_d <- pca_data %>% select(all_of(PARAMETERS$EXIGO$FK46_Exigo_cols))
-    }else if(ExpID == "BH15") {
-  pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))%>%drop_na()
-  numerical_d <- pca_data %>% select(all_of(PARAMETERS$EXIGO$FK49_Exigo_cols))
-  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
+  pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$Legendplex$cytokines))%>%drop_na()
+  numerical_d <- pca_data %>% select(all_of(PARAMETERS$Legendplex$cytokines))
+}else if(ExpID == "FK46") {
+  #pca_data <- d1 %>%select(Animal, Sex, Treatment, all_of(PARAMETERS$legendplex$cytokines))%>%drop_na()
+  #numerical_d <- pca_data %>% select(all_of(PARAMETERS$legendplex$cytokines))
+}else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
 }
 
 
@@ -434,7 +422,7 @@ f6<-autoplot(data.pca, data = pca_data, x = 1, y = 2, size = 3, fill = "Treatmen
   scale_color_manual(values =Treatment_colors[c("Ctrl","TAM")])+
   scale_fill_manual(values =Treatment_colors[c("Ctrl","TAM")])+
   scale_shape_manual(values=Sex_shape)+
- # geom_text(aes(label = Animal), vjust = -1, size = 3)+
+  # geom_text(aes(label = Animal), vjust = -1, size = 3)+
   theme(text = element_text(size = 20))
 ggsave(f1, path = output_pwd,file= paste0(ExpID,"_PCA_ScreePlot.png"),dpi=300, width=4, height=2.5)
 ggsave(f2, path = output_pwd,file= paste0(ExpID,"_PCA_VariablePlot.png"),dpi=300, width=5, height=4)
@@ -445,14 +433,14 @@ ggsave(f6, path = output_pwd,file= paste0(ExpID,"_PCA_Scores.png"),dpi=300, widt
 
 volcano_data <- stats %>%
   mutate( FC = mean_tam / mean_ctrl,
-    log2FC = log2(FC),
-    negLog10FDR = -log10(p_adj),
-    direction = case_when(
-      p_adj < 0.05 & log2FC < 0 ~ "TAM lower",
-      p_adj < 0.05 & log2FC > 0 ~ "TAM higher",
-      TRUE ~ "Not significant"
-    ),  significant = !is.na(p_adj) & p_adj < 0.05,
-    Metabolite = parameter ) %>%
+          log2FC = log2(FC),
+          negLog10FDR = -log10(p_adj),
+          direction = case_when(
+            p_adj < 0.05 & log2FC < 0 ~ "TAM lower",
+            p_adj < 0.05 & log2FC > 0 ~ "TAM higher",
+            TRUE ~ "Not significant"
+          ),  significant = !is.na(p_adj) & p_adj < 0.05,
+          Metabolite = parameter ) %>%
   filter(
     is.finite(log2FC),
     is.finite(negLog10FDR)
@@ -516,10 +504,9 @@ print(p_volcano)
 
 ggsave(
   plot = p_volcano,
-  filename = paste0(ExpID, "_Exigo_volcano.png"),
+  filename = paste0(ExpID, "_Cytokine_volcano.png"),
   width = 6,
   height = 9,
   dpi = 300,
   path = output_pwd
 )
-

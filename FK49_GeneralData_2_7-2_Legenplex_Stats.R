@@ -3,6 +3,7 @@ gc()
 library(tidyverse)
 library(NADA2)
 library(emmeans)
+library(car) # for Type III ANOVA via car::Anova()
 source("FK49_Definitions.R")
 ExpID= "FK49"   # Decide if you want to load data from FK46 or FK49
 
@@ -12,11 +13,12 @@ if(ExpID == "FK49"){
   cytokine_list<-PARAMETERS$Legendplex$cytokine_list  
   output_pwd = file.path(PATHS$legendplex$FK49_output)
 }else if(ExpID == "FK46") {
-  # load(file = file.path(PATHS$exigo$FK46_input,  "FK46_Exigo_prepared.Rda"))
-  # param_list=  param_list=PARAMETERS$EXIGO$FK46_Exigo_Liver_Panel
-  # output_pwd = file.path(PATHS$exigo$FK46_output)
-  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")
-}
+ data<- readRDS(file = file.path(dirname(dirname(PATHS$legendplex$FK46_output)), "01_RawData/FK46_Legendplex_clean.Rds"))%>% 
+   filter(!str_detect(Animal, "T$"))
+  cytokine_list<-PARAMETERS$Legendplex$cytokine_list
+  output_pwd = file.path(PATHS$legendplex$FK46_output)
+  }else{print("Give me an exisiting Experiment ID to load the correct data from the correct path.")}
+
 
 analyze_legendplex_parameter <- function(inputdata,value,batch = "ALL",reference_batch = NULL) {
   #in preprocessing i generated colms for censoring and direction 
@@ -157,9 +159,9 @@ analyze_legendplex_parameter <- function(inputdata,value,batch = "ALL",reference
     
   } else {
     # Statistics for uncensored data -----
-    model <- lm(value_numeric ~ Treatment * Sex, data = d)
-    # ANOVA
-    anova_result <- anova(model)
+    model <- lm(value_numeric ~ Treatment * Sex, data = d, contrasts = list(Treatment = contr.sum, Sex = contr.sum)) # sum-to-zero contrasts required for valid Type III tests
+    # ANOVA (Type III sum of squares; base anova() gives sequential Type I)
+    anova_result <- car::Anova(model, type = 3)
     #ANOVA effect size die model struktur berücksichtigt
     
     p_treatment <- anova_result["Treatment", "Pr(>F)"]

@@ -11,7 +11,7 @@ source("FK49_Definitions.R")
 
 
 # Read Raw Inputdata and general Data manipulation ------------------------------------------------------
-ExpId="FK46"
+ExpId="FK49"
 
 if (ExpId=="FK49") {
   
@@ -28,7 +28,7 @@ data<-data %>% rename_with( ~ str_replace(.x, "^NASH_", "MASH_"), starts_with("N
 # Waffel Plots -----
 
 ## Data Summary for Waffels -----
-MASH_summary <- data %>%select(Animal,Sex, Treatment,starts_with("MASH_"),-any_of(c("MASH_N1","MASH_N2")))%>%
+MASH_summary <- data %>%select(Animal,Sex, Treatment,starts_with("MASH_"),-MASH_N1,-MASH_N2)%>%
   filter(!is.na(MASH_S)) %>%
   mutate( across(starts_with("MASH_"),~ as.numeric(as.character(.)))) %>% 
   mutate(MASH_Category = case_when(
@@ -91,7 +91,7 @@ MASH_p <- ggplot(waffle_data, aes(fill = fill_type, values = 1)) +
   scale_fill_manual(values = c(alpha(Treatment_colors[c("Ctrl","TAM")],0.4), "dummy" = "white"),
                     labels = c("Ctrl"="Ctrl","TAM"="TAM","dummy"=""),
                      name= "Treatment")+
-  scale_x_continuous(breaks = c(tiles_per_block / 2, tiles_per_block * 1.5), labels = c("Ctrl", "TAM")) +
+  scale_x_continuous(breaks = c(4.5, 13.5),labels = c("Ctrl", "TAM")) +
  # coord_equal(expand = TRUE) +
   facet_grid(MASH_Category ~ ., switch = "y", space = "free_y",  labeller = label_wrap_gen(8)) +
   theme(panel.spacing = unit(0.5 ,"lines"),
@@ -125,7 +125,7 @@ df_long <- MASH_Fishers %>%
 ## Barplot ----
 p1<-ggbarstats(df_long, MASH_Category, Treatment,results.subtitle = FALSE, subtitle = paste0("Fisher's exact test", ", p-value = ",round(test$p.value, 5)))+
   scale_fill_manual(values = c("No MASH" ="#A8E6B1", "Only Steatosis" =  "#FFDAB9", "Borderline MASH" = "#FDBA74","Definite MASH" = "#FF9999"))
-ggsave(filename = paste0(ExpId, "_MASHScore_bar_both.png"), plot = p1, path =output_pwd, width = 5, height =10 ,dpi = 300)
+ggsave(filename = "FK49_MASHScore_bar_both.png", plot = p1, path =output_pwd, width = 5, height =10 ,dpi = 300)
 
 
 
@@ -176,8 +176,8 @@ MASH_Category_stats <- bind_rows( MASH_Fishers%>%mutate(method= "Summary_Categor
 MASH_Score_stats <- bind_rows( Summary_W_stats%>%mutate(method= "Summary_Scores"),wilcox_table)%>%
   select(method,colnames(Summary_W_stats),colnames(wilcox_table))
 
-write.csv2(MASH_Category_stats,paste0(output_pwd,"/",ExpId,"_MASH_Category_Stats.csv"))
-write.csv2(MASH_Score_stats,paste0(output_pwd,"/",ExpId,"_MASH_Score_Stats.csv"))
+write.csv2(MASH_Category_stats,paste0(output_pwd,"/Statistics/",ExpId,"_MASH_Category_Stats.csv"))
+write.csv2(MASH_Score_stats,paste0(output_pwd,"/Statistics/",ExpId,"_MASH_Score_Stats.csv"))
 
 
 # Boxplots of MASH Scores -----
@@ -216,7 +216,7 @@ for (i in vars) {
     annotation_row  = row_annot,       
     color = colorRampPalette(c("white", "orange", "red"))(50),
     annotation_colors = list(Treatment = Treatment_colors[c("Ctrl","TAM")]),
-    main = paste0("MASH Scoring Heatmap ", ExpId),
+    main = "MASH Scoring Heatmap iAL after 13wks CD-HFD",
     labels_col = "Animals",
     labels_row = c("Inflammation","Ballooning","Steatosis",  "Total Score"),
     border_color = "black",

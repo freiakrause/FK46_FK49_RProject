@@ -4,15 +4,11 @@ gc()
 library(tidyverse)
 library(lmerTest)
 library(emmeans)
-library(car) # for Type III ANOVA via car::Anova()
 source("FK49_Definitions.R")
-
-ExpId = "FK49" # Set to "FK49" or "FK46"
-
 # Read Raw Inputdata after general Data manipulation ------------------------------------------------------
-output_pwd <- file.path(PATHS$Organs[[paste0(ExpId,"_output")]])
+output_pwd <- file.path(PATHS$Organs$output)
 
-load(file.path(PATHS$Organs[[paste0(ExpId,"_input")]], paste0(ExpId,"_Data_prepared.Rda")))
+load(file.path(PATHS$Organs$input, "FK49_Data_prepared.Rda"))
 
 #Stat Analysis Organ Weight-----
 analyze_organ_weight <- function(inputdata, value) {
@@ -23,8 +19,8 @@ analyze_organ_weight <- function(inputdata, value) {
   summary_stats <- d %>%group_by(Treatment)%>%summarize(Mean=mean(.data[[value]]),SD=sd(.data[[value]]),n=n())
 ## Linear model -----
   formula <- as.formula(paste(value, "~ Treatment * Sex + BATCH")) # Is there T effect, is there sex efect, isthere tretment and sex interaction, is there batch effect
-  model <- lm(formula, data = d, contrasts = list(Treatment = contr.sum, Sex = contr.sum, BATCH = contr.sum)) # sum-to-zero contrasts required for valid Type III tests
-  anova_table <- car::Anova(model, type = 3) # Type III sum of squares (unbalanced design); base anova() gives sequential Type I
+  model <- lm(formula, data = d)
+  anova_table <- anova(model)
   p_treatment  <- anova_table["Treatment", "Pr(>F)"]
   p_sex        <- anova_table["Sex", "Pr(>F)"]
   p_interaction <- anova_table["Treatment:Sex", "Pr(>F)"]
@@ -49,9 +45,8 @@ analyze_organ_weight <- function(inputdata, value) {
 
 
 
-# Filter organ variables to only those present in the data (FK46 has no Fat/Fat_rel)
-absolute_organ_variables <- c("Liver","Spleen", "Fat")[c("Liver","Spleen", "Fat") %in% names(data)]
-rel_organ_variables <- c("Liver_rel","Spleen_rel","Fat_rel")[c("Liver_rel","Spleen_rel","Fat_rel") %in% names(data)]
+absolute_organ_variables <- c("Liver","Spleen", "Fat")
+rel_organ_variables <- c("Liver_rel","Spleen_rel","Fat_rel")
 
 absolute_results <- lapply( absolute_organ_variables, function(x) analyze_organ_weight(data, x))
 rel_results <- lapply(rel_organ_variables,  function(x) analyze_organ_weight(data, x))
@@ -174,8 +169,8 @@ organ_stats <- organ_stats %>%
         p_Batch,p_Batch_adj,Interpretation_Batch, Overall_Interpretation,contrasts)
 
 
-write.csv2( organ_stats,file = file.path(output_pwd,paste0("/",ExpId,"_Organ_Weight_Statistics.csv")),row.names = FALSE)
-saveRDS(organ_stats,file = file.path(output_pwd,paste0("/",ExpId,"_Organ_Weight_Statistics.rds")))
+write.csv2( organ_stats,file = file.path(output_pwd,"Statistics/FK49_Organ_Weight_Statistics.csv"),row.names = FALSE)
+saveRDS(organ_stats,file = file.path(output_pwd,"Statistics/FK49_Organ_Weight_Statistics.rds"))
 
 
            

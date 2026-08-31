@@ -6,6 +6,7 @@ library(lme4)
 library(lmerTest)
 library(emmeans)
 library(NADA2)
+library(car) # for Type III ANOVA via car::Anova()
 source("FK49_Definitions.R")
 
 ExpID <- "FK49"
@@ -230,7 +231,7 @@ for (ba in BA_to_test) {
     }
     
   } else {
-    fit <- tryCatch(lm(value ~ Treatment * Sex, data = df_ba), error = function(e) NULL)
+    fit <- tryCatch(lm(value ~ Treatment * Sex, data = df_ba, contrasts = list(Treatment = contr.sum, Sex = contr.sum)), error = function(e) NULL) # sum-to-zero contrasts required for valid Type III tests
     if (is.null(fit)) {
       result$method <- "model_failed"
       results[[ba]] <- result
@@ -239,7 +240,7 @@ for (ba in BA_to_test) {
     }
     
     result$method <- "linear_model_Treatment_x_Sex"
-    anova_result <- tryCatch(as.data.frame(anova(fit)), error = function(e) NULL)
+    anova_result <- tryCatch(as.data.frame(car::Anova(fit, type = 3)), error = function(e) NULL) # Type III sum of squares; base anova() gives sequential Type I
     if (!is.null(anova_result)) {
       result$p_Treatment <- anova_result$`Pr(>F)`[rownames(anova_result) == "Treatment"]
       result$p_Sex <- anova_result$`Pr(>F)`[rownames(anova_result) == "Sex"]
@@ -261,11 +262,9 @@ for (ba in BA_to_test) {
     }
     
     emm_treatment <- tryCatch(emmeans(fit, ~ Treatment), error = function(e) NULL)
-    con_treatment <- if (!is.null(emm_treatment)) tryCatch(as.data.frame(contrast(emm_treatment, method = "pairwise", adjust = "none", infer = TRUE)), error = function(e) NULL) else NULL
-    
-    if (!is.null(con_treatment) && nrow(con_treatment) > 0) {
-      result$p_Treatment <- con_treatment$p.value[1]
-    }
+    # p_Treatment is taken from the Type III ANOVA above. For a two-level Treatment
+    # factor it is identical to the emmeans pairwise contrast p-value, so the
+    # previous overwrite with con_treatment$p.value[1] was removed for consistency.
     
     if (!is.null(emm_treatment)) {
       eff <- tryCatch(eff_size(emm_treatment, sigma = sigma(fit), edf = df.residual(fit)), error = function(e) NULL)
@@ -368,4 +367,4 @@ rds_path <- file.path(output_pwd, paste0(ExpID, "_BA_TP11_Statistics.rds"))
 saveRDS(results_df, file = rds_path)
 
 cat("\nCSV written to:\n", csv_path, "\n")
-cat("\nR object written to:\n", rds_path, "\n")
+cat("\nR object written to:\n", rds_path, "\n")

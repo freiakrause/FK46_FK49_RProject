@@ -10,8 +10,8 @@
 #   "ND"    - BH, females only, model value ~ Treatment
 #             censored metabolites: cens1way (NADA2)
 #
-# Uncensored metabolites: lm on log2-transformed values with emmeans
-#   (pairwise Treatment contrast, Cohen's d, sex-stratified contrasts).
+# Uncensored metabolites: lm on log2-transformed values with Type III ANOVA
+#   (car::Anova) and emmeans (Cohen's d, sex-stratified Treatment contrasts).
 # Censored metabolites: cen2way/cens1way on raw LOD-imputed values with
 #   LOG = TRUE; internal survreg reproduced for GMR and CI.
 #
@@ -25,6 +25,7 @@ library(tidyverse)
 library(emmeans)
 library(NADA2)
 library(survival)
+library(car) # for Type III ANOVA via car::Anova()
 source("FK49_Definitions.R")
 
 # ============================================================
@@ -250,20 +251,24 @@ run_lm <- function(value_log, Treatment, Sex, use_sex, Batch = NULL, use_batch =
   if (use_sex && use_batch) {
     df_metab <- data.frame(value_log = value_log, Treatment = Treatment,
                            Sex = Sex, Batch = factor(Batch))
-    fit <- tryCatch(lm(value_log ~ Treatment * Sex + Batch, data = df_metab),
-                    error = function(e) NULL)
+    fit <- tryCatch(lm(value_log ~ Treatment * Sex + Batch, data = df_metab,
+                       contrasts = list(Treatment = contr.sum, Sex = contr.sum, Batch = contr.sum)),
+                    error = function(e) NULL) # sum-to-zero contrasts required for valid Type III tests
   } else if (use_sex) {
     df_metab <- data.frame(value_log = value_log, Treatment = Treatment, Sex = Sex)
-    fit <- tryCatch(lm(value_log ~ Treatment * Sex, data = df_metab),
+    fit <- tryCatch(lm(value_log ~ Treatment * Sex, data = df_metab,
+                       contrasts = list(Treatment = contr.sum, Sex = contr.sum)),
                     error = function(e) NULL)
   } else if (use_batch) {
     df_metab <- data.frame(value_log = value_log, Treatment = Treatment,
                            Batch = factor(Batch))
-    fit <- tryCatch(lm(value_log ~ Treatment + Batch, data = df_metab),
+    fit <- tryCatch(lm(value_log ~ Treatment + Batch, data = df_metab,
+                       contrasts = list(Treatment = contr.sum, Batch = contr.sum)),
                     error = function(e) NULL)
   } else {
     df_metab <- data.frame(value_log = value_log, Treatment = Treatment)
-    fit <- tryCatch(lm(value_log ~ Treatment, data = df_metab),
+    fit <- tryCatch(lm(value_log ~ Treatment, data = df_metab,
+                       contrasts = list(Treatment = contr.sum)),
                     error = function(e) NULL)
   }
 
@@ -272,7 +277,7 @@ run_lm <- function(value_log, Treatment, Sex, use_sex, Batch = NULL, use_batch =
   }
 
   # ANOVA p-values
-  anova_result <- tryCatch(as.data.frame(anova(fit)), error = function(e) NULL)
+  anova_result <- tryCatch(as.data.frame(car::Anova(fit, type = 3)), error = function(e) NULL) # Type III sum of squares; base anova() gives sequential Type I
   p_Treatment <- p_Sex <- p_Treatment_Sex <- p_Batch <- NA_real_
 
   if (!is.null(anova_result)) {
@@ -295,16 +300,11 @@ run_lm <- function(value_log, Treatment, Sex, use_sex, Batch = NULL, use_batch =
   log2FC    <- mean_TAM - mean_Ctrl
   fold_change <- 2^log2FC
 
-  # emmeans pairwise Treatment contrast
+  # emmeans object for effect size calculation
+  # (p_Treatment is taken from the Type III ANOVA above; for a two-level Treatment
+  # factor it is identical to the emmeans pairwise contrast p-value, so the
+  # previous overwrite with con_treatment$p.value[1] was removed for consistency)
   emm_treatment <- tryCatch(emmeans(fit, ~ Treatment), error = function(e) NULL)
-  con_treatment <- if (!is.null(emm_treatment))
-    tryCatch(as.data.frame(contrast(emm_treatment, method = "pairwise",
-                                    adjust = "none", infer = TRUE)),
-             error = function(e) NULL) else NULL
-
-  if (!is.null(con_treatment) && nrow(con_treatment) > 0) {
-    p_Treatment <- con_treatment$p.value[1]
-  }
 
   # Cohen's d via eff_size (negated so positive = TAM higher)
   effect_size <- effect_CI_low <- effect_CI_high <- NA_real_

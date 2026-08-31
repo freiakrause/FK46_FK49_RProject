@@ -6,11 +6,9 @@ library(lmerTest)
 library(emmeans)
 library(ggpubr)
 source("FK49_Definitions.R")
-
-ExpId = "FK49" # Set to "FK49" or "FK46"
-
+# Hier weiter machen Comments einfügen und stats rausschreiben
 # Read Raw Inputdata after general Data manipulation ------------------------------------------------------
-load(file.path(PATHS$general_data[[paste0(ExpId,"_output")]],"01_RawData",paste0(ExpId,"_Data_prepared.Rda")))
+load(file.path(PATHS$general_data$FK49_output,"01_RawData/FK49_Data_prepared.Rda"))
 
 # Function for Weight Curves ----------------------------------------------
 #Function assumes if you say BATCH== "ALL that you have batch 1 and 2. 
@@ -20,11 +18,11 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
                             batch = "ALL", sex = "both", N, path_images,savestats = "NO"){
   
   value_label_final <- if (is.null(value_label)) deparse(substitute(value)) else value_label #label for plotting and saving
-  file_base <- paste0(ExpId, "_", value_label_final, "_Batch", batch, "_", sex, "_n", N)
+  file_base <- paste0("FK49_", value_label_final, "_Batch", batch, "_", sex, "_n", N)
   
   # filter for specified sex -----
   filtered <- inputdata %>%
-    select(any_of(c("Sex", "BATCH", "Treatment", "DOW", "wks_diet", "Animal", "Block", "days_diet", "Cage")), {{value}})%>%
+    select(Sex, BATCH,Treatment,DOW,wks_diet,Animal,Block,days_diet, Cage ,{{value}})%>%
     filter(!is.na({{value}})) %>%
     filter(case_when(
       sex == "female" ~ Sex == "female",
@@ -49,17 +47,15 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
   else {
     filtered <- filtered %>% filter(BATCH == batch)
   }
-  # Filter out food days (FK49 only — FK46 has no food/water daily weighing) -----
+  # Filter out food days -----
    #they should not appear in this overall plot. 
    #Here I only want weekly measurements not the Food/Water Intake Daily weights
-  if ("Block" %in% names(filtered)) {
     filtered <- filtered %>%
     group_by(Animal, Block) %>%
     filter((Block %in% c("0") & days_diet == -7) | # In block 0 and 1 all batches were weight on the Monday,
            (Block %in% c("1") & days_diet == 0)|    #DOW_in_Block 1 so thats the day i want to represent the week
            (!Block %in% c("0", "1")  & days_diet == as.numeric(as.character(Block))*7-4) )%>%
     ungroup()
-  }
   # I summarize data from "filtered" dataset in "Mean_SD_data" to be able to plot the mean and sd later on  
   Mean_SD_data <- filtered %>%
     group_by(Treatment, wks_diet) %>%
@@ -139,8 +135,7 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
   
   min_x <- round(min(Mean_SD_data$wks_diet, na.rm = TRUE))
   max_x <- round(max(Mean_SD_data$wks_diet, na.rm = TRUE) + 1)
-  x_break_step <- if (max_x > 20) 4 else 1
-  breaks_x <- seq(-1, max_x, by = x_break_step)
+  breaks_x <- seq(-1, max_x, by = 1)
   
   unit_label <- unit
   
@@ -163,7 +158,7 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
     scale_color_manual(values = c(Treatment_colors[c("Ctrl","TAM")],"black","pink")) +
     scale_fill_manual(values = c(Treatment_colors[c("Ctrl","TAM")],"black","pink")) +
     scale_x_continuous(name = "Time on CD-HFD [wks]", limits = c(min_x, max_x),
-                       breaks = breaks_x, minor_breaks = seq(min_x, max_x, by = x_break_step / 2)) +
+                       breaks = breaks_x, minor_breaks = seq(min_x, max_x, by = 1)) +
     scale_y_continuous(name = sprintf("%s [%s]", deparse(substitute(value)), unit_label),
                        limits = c(min_value, max_value), breaks = breaks_value) +
     xlab("Time on CD-HFD [wks]") +
@@ -202,7 +197,7 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
     pwc_df <- pwc_df %>%mutate(wks_diet = factor(wks_diet),table = "Pairwise Comparison")
     StatsOutput <- bind_rows(outliers,anova_table,pwc_df)%>% relocate( table)
     write.csv2( StatsOutput,
-                file = file.path(paste0(path_images), paste0(file_base, "_StatsOutput.csv")),
+                file = file.path(paste0(path_images,"/Statistics"), paste0(file_base, "_StatsOutput.csv")),
                 row.names = FALSE,  na = "",  fileEncoding = "UTF-8"  )
   }
   
@@ -219,18 +214,18 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
 
 
 # Run Function for Weight Curves and save output --------------------------------------------------------
-path_for_saving_images<-file.path(PATHS$general_data[[paste0(ExpId,"_output")]],"02_GeneratedData/Weight_Organs")
+path_for_saving_images<-file.path(PATHS$general_data$FK49_output,"02_GeneratedData/Weight_Organs")
 
 ## Relative Weight as summary from Batch 1 and 2 together --------------------------------------------------------
-do_weight_curve(data, value=rel.weight, value_label = "rel.BW",
+do_weight_curve(data, value=rel.weight, value_label = "rel. BW",
                 unit = "perc", batch="ALL", sex="male", N=0,path_for_saving_images,savestats="YES")
-do_weight_curve(data, value=rel.weight, value_label = "rel.BW",unit = "perc", batch="ALL", sex="female",N=0,path_for_saving_images,savestats="YES")
+do_weight_curve(data, value=rel.weight, value_label = "rel. BW",unit = "perc", batch="ALL", sex="female",N=0,path_for_saving_images,savestats="YES")
 do_weight_curve(data, value=Weight,value_label = "Body Weight", unit = "g", batch="ALL", sex="female",N=0,path_for_saving_images,savestats="YES")
 do_weight_curve(data, value=Weight,value_label = "Body Weight", unit = "g", batch="ALL", sex="male",N=0,path_for_saving_images,savestats="YES")
 
 gc()
 
-path_for_saving_images<-file.path(PATHS$general_data[[paste0(ExpId,"_output")]],"02_GeneratedData/Weight_Organs/background")
+path_for_saving_images<-file.path(PATHS$general_data$FK49_output,"02_GeneratedData/Weight_Organs/background")
 ## Absolute Body Weight Single and combined Batches  --------------------------------------------------------
 do_weight_curve(data, value=Weight,value_label = "Body Weight", unit = "g", batch=2, sex="male",N=0,path_for_saving_images)
 do_weight_curve(data, value=Weight,value_label = "Body Weight", unit = "g", batch=1, sex="male",N=0,path_for_saving_images)

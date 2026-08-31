@@ -6,8 +6,8 @@ library(lmerTest)
 library(emmeans)
 source("FK49_Definitions.R")
 # Read Raw Inputdata after general Data manipulation ------------------------------------------------------
-output_pwd <-file.path(PATHS$Organs$output)
-load(file.path(PATHS$Organs$input,"FK49_Data_prepared.Rda"))
+output_pwd <-file.path(PATHS$Organs$FK49_output)
+load(file.path(PATHS$Organs$FK49_input,"FK49_Data_prepared.Rda"))
 #plot Serum SAA ----
 ## Summarize for Plotting -----
 stats_SAA <- data %>% 

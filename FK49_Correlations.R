@@ -16,7 +16,7 @@ library(patchwork)
 library(superb)
 library(ggbreak)
 library(tibble)
-library(waffle)
+
 library(rstatix)
 library(lmerTest)
 library(emmeans)

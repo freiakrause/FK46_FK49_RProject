@@ -7,8 +7,9 @@ library(ggplot2 )
 source("FK49_Definitions.R")
 # read raw inputdata and general data preprocessing -----
  
-ExpId = "FK46" # Set to "FK49" or "FK46" — script handles both experiments
-               # FK46 and FK49 share most measurements but need slightly different data manipulation
+ExpId = "FK49" # at the moment only use with FK49
+               # wanted to make it usable for FK46 and FK49 but they need slightly different data manipulation
+               # not yet nicely implemented
 
   #sets output directory and loads input. If there is a new (unknown to me) experiment, path needs to be included here and in FK49_Definitions
   
@@ -18,30 +19,16 @@ if (ExpId=="FK49") {
       filter(!is.na(Animal), trimws(Animal) != "") 
   }  else if (ExpId == "FK46"){
     output = file.path(PATHS$general_data$FK46_output)
-    d <- read.csv(file.path(PATHS$general_data$FK46_input,"FK46_Data_for_R.csv"), sep = ";") %>%
-      filter(!is.na(Animal), trimws(Animal) != "")
-    ## Column harmonization: rename FK46 columns to match FK49 names ----
-    d <- d %>%
-      rename(Granuloma.no.yes = Granuloma,
-             EXIGOSample = USEPANEL,
-             EXIGOBuffer = USEBUFFER) %>%
-      select(-any_of("X"))                  # drop empty column from trailing ;
-    ## Fix typo in column name (not used in analysis but cleaner)
-    if ("NASh_N2" %in% names(d)) d <- d %>% rename(NASH_N2 = NASh_N2)
+    d <- read.csv(file.path(PATHS$general_data$FK46_input,"FK46_CD-HFD_13wks_Data.csv"), sep = ";") %>%
+      filter(!is.na(Animal), trimws(Animal) != "") 
   } else{
     print("Let me set a folder Path and define ExpId and Folderpath")}
-  
-  ## Ensure Animal is character (FK46 has numeric IDs, FK49 has mixed) ----
-  d <- d %>% mutate(Animal = as.character(Animal))
   
   ## Define Startweight, Endpoint Weight, Exigo Parameters ------
   startweight <- d %>% filter(DOW == START.Diet) %>% mutate(Startweight = Weight) %>% select(Animal, Startweight)
   EP_weight   <- d %>% filter(DOW == KILL.DATE) %>% mutate(EP_weight = Weight) %>%  select(Animal, EP_weight)
-  if (ExpId == "FK49") {
-    exigo <- PARAMETERS$EXIGO$FK49_Exigo_cols
-  } else if (ExpId == "FK46") {
-    exigo <- PARAMETERS$EXIGO$FK46_Exigo_cols
-  }
+  exigo <- c("ALB", "TP", "GLOB","A.G", "TB", "GGT", "AST", "ALT", "ALP", "AMY","Crea","UA","BUN","GLU","TC","TG")
+  #exigo FK46 has different parameters since i used different assay panel
   
   ## Main Data Manipulation ------
   data <- d %>%
@@ -56,21 +43,21 @@ if (ExpId=="FK49") {
             wks_diet       = round((as.numeric(DOW - START.Diet) / 7), 2),
             days_diet      = round((as.numeric(DOW - START.Diet)), 0),
             age_start      = round((as.numeric(START.Diet - DOB) / 7), 1)) %>%
-    mutate(across(any_of(c("Liver", "Spleen", "Weight", "LNc", "LNld", "LNm", "LivFACS", "Fat", "Food", "Water", "Score", "Startweight", "EP_weight")),
-                  ~ as.numeric(gsub(",", ".", .)))) %>%                                    #change , to . to have correct numeric values; any_of skips FK49-only cols for FK46
+    mutate(across(c(Liver, Spleen, Weight, LNc, LNld, LNm, LivFACS, Fat, Food, Water, Score, Startweight, EP_weight),
+                  ~ as.numeric(gsub(",", ".", .)))) %>%                                    #change , to . to have correct numeric values
     mutate(rel.weight    = (Weight / Startweight) * 100,                                   # calculated some rel values and put g to mg
            rel_EP_weight = (EP_weight / Startweight) * 100,
            Spleen        = Spleen * 1000,
            Liver_rel     = Liver / Weight * 100,
            Spleen_rel    = ((Spleen / 1000) / Weight) * 100,
+           Fat_rel       = Fat / Weight * 100,
            NASH_S1 = as.numeric(NASH_S1),
            NASH_S2 = as.numeric(NASH_S2),
            NASH_B1 = as.numeric(NASH_B1),
            NASH_B2 = as.numeric(NASH_B2),
            NASH_I1 = as.numeric(NASH_I1),
            NASH_I2 = as.numeric(NASH_I2)) %>%
-    {if ("Fat" %in% names(.)) mutate(., Fat_rel = Fat / Weight * 100) else .} %>%           # Fat_rel only for FK49 (FK46 has no Fat)
-    {if ("Batch" %in% names(.)) rename(., BATCH = Batch) else .} %>%                        # FK49 has 'Batch', FK46 already has 'BATCH'
+    rename( BATCH = Batch ) %>%
     mutate(Treatment = factor(Treatment,  levels = c("EtOH", "TAM"),  labels = c("Ctrl", "TAM"))) %>%
     mutate(across(all_of(exigo), as.character)) %>%
     mutate(DFactor = (EXIGOSample + EXIGOBuffer) / EXIGOSample) %>%                                #calculate dilution factor for exigo measurment
@@ -101,14 +88,10 @@ if (ExpId=="FK49") {
     rename_with(~ str_replace(., "_numeric_value_diluted$", ""))
     
   
-  # Animal count per cage (FK49 only — FK46 has no Cage column) -----
-  if ("Cage" %in% names(data)) {
-    animal_count <- data %>%  group_by(DOW, Cage) %>%  summarise(n_animals = n(), .groups = "drop")
-    data <- data %>% left_join(animal_count, by = c("DOW", "Cage"))
-    rm(animal_count)
-  }
+  animal_count <- data %>%  group_by(DOW, Cage) %>%  summarise(n_animals = n(), .groups = "drop")
+  data <- data %>%left_join(animal_count, by = c("DOW", "Cage"))
   
-  rm(EP_weight,startweight)
+  rm(animal_count,EP_weight,startweight)
   ## Prepare Food Food and Water Measurements and add to data frame (only in FK49) ------
   if (ExpId=="FK49") {
     ## Prepare Food Measurements ------
@@ -221,30 +204,17 @@ if (ExpId=="FK49") {
     # which would mess up automated mutation to summaries the different batches. 
     # 1 day real life difference is ignored here
   
-  if (ExpId == "FK49") {
-    data<-data %>% mutate(
-      wks_diet= case_when(
-      wks_diet== 4.29 ~ 4.43,
-      wks_diet== 12.29 ~ 12.43,
-      TRUE ~wks_diet),
-      
-      days_diet=case_when(
-        days_diet == 30 ~ 31,
-        days_diet == 86 ~ 87,
-        TRUE ~days_diet)
-    )
-  } else if (ExpId == "FK46") {
-    ## FK46-specific manual timepoint corrections -----
-    data <- data %>% mutate(
-      wks_diet = case_when(
-        wks_diet == 7.57  ~ 7.835,
-        wks_diet == 8.14  ~ 7.835,
-        wks_diet == 25.43 ~ 25.715,
-        wks_diet == 26.00 ~ 25.715,
-        TRUE ~ wks_diet))
-    ## Automated grouping of close timepoints (tolerance=0.4 weeks ≈ 2.8 days) -----
-    data <- group_close_timepoints(data, tolerance = 0.4)
-  }
+  data<-data %>% mutate(
+    wks_diet= case_when(
+    wks_diet== 4.29 ~ 4.43,
+    wks_diet== 12.29 ~ 12.43,
+    TRUE ~wks_diet),
+    
+    days_diet=case_when(
+      days_diet == 30 ~ 31,
+      days_diet == 86 ~ 87,
+      TRUE ~days_diet)
+  )
   
   ### Checkpoint 2  for wks_diet if manual mutation worked -----
   data_sum_for_check2<-data%>%
@@ -300,10 +270,10 @@ if (ExpId=="FK49") {
   
   Legendplex_data <-NULL
   if (ExpId == "FK49") {
-    Legendplex_data <- read.csv(file.path(dirname(dirname(PATHS$legendplex$FK49_output)), "01_RawData/FK49_Legendplex_clean.csv")) %>%
+    Legendplex_data <- read.csv(file.path(PATHS$legendplex$input_FK49,"FK49_Legendplex_clean.csv")) %>%
       mutate(Animal = as.character(Animal))
   }  else if (ExpId == "FK46"){
-    Legendplex_data <- read.csv(file.path(dirname(dirname(PATHS$legendplex$FK46_output)), "01_RawData/FK46_Legendplex_clean.csv")) %>%
+    Legendplex_data <-read.csv(file.path(PATHS$legendplex$input_FK46,"FK46_Legendplex_clean.csv"))%>%
       mutate(Animal = as.character(Animal))
   } else{
     print("I dont know if there is clean legenplex data")}  
@@ -315,7 +285,7 @@ if (ExpId=="FK49") {
       filter(DOW == KILL.DATE)%>%
       select(Animal,DOW)%>%
       distinct()%>%
-      left_join(Legendplex_data %>% select(-any_of(c("DOW","KILL.DATE","Sex","Treatment","BATCH","Tumor.no.yes","Ascites.no.yes","wks_diet"))), by = "Animal")
+      left_join(Legendplex_data,by = "Animal")
     data<-data %>% left_join(LD, by = c("Animal","DOW") )    }
   gc()
   

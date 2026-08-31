@@ -9,12 +9,12 @@ if (ExpID == "FK49") {
   output_pwd <- file.path(PATHS$exigo$FK49_output)
   Exigo_cols <-PARAMETERS$EXIGO$FK49_Exigo_cols
   load(file.path( PATHS$exigo$FK49_input, "FK49_Data_prepared.Rda"))
-   d1 <- data %>%select( Animal, Sex,Treatment,BATCH,-any_of("TV"),starts_with(Exigo_cols)) %>%
+   d1 <- data %>%select( Animal, Sex,Treatment,BATCH,-TV,starts_with(Exigo_cols)) %>%
     filter(!is.na(ALB)) %>% mutate( Animal = as.character(Animal),BATCH = as.character(BATCH) )
   
   
   load(file.path( PATHS$BH_baseline$input,"BH15_Data_prepared.Rda"))
-  baseline_data <- data %>% select( Animal, Sex,Treatment,BATCH,-any_of("TV"),starts_with(Exigo_cols)) %>%
+  baseline_data <- data %>% select( Animal, Sex,Treatment,BATCH,-TV,starts_with(Exigo_cols)) %>%
     filter(!is.na(ALB)) %>%
     mutate( Animal = as.character(Animal),
             BATCH = as.character(BATCH),
@@ -29,12 +29,12 @@ if (ExpID == "FK49") {
   output_pwd <- file.path(PATHS$exigo$FK46_output)
   Exigo_cols <-PARAMETERS$EXIGO$FK46_Exigo_cols
   load(file.path(PATHS$exigo$FK46_input,"FK46_Data_prepared.Rda"))
-  d1 <- data %>%select( Animal, Sex,Treatment,BATCH,-any_of("TV"),starts_with(Exigo_cols)) %>%
+  d1 <- data %>%select( Animal, Sex,Treatment,BATCH,-TV,starts_with(Exigo_cols)) %>%
     filter(!is.na(ALB)) %>% mutate( Animal = as.character(Animal),BATCH = as.character(BATCH) )
   
   
   load(file.path( PATHS$BH_baseline$input,"BH15_Data_prepared.Rda"))
-  baseline_data <- data %>% select( Animal, Sex,Treatment,BATCH,-any_of("TV"),starts_with(Exigo_cols)) %>%
+  baseline_data <- data %>% select( Animal, Sex,Treatment,BATCH,-TV,starts_with(Exigo_cols)) %>%
     filter(!is.na(ALB)) %>%
     mutate( Animal = as.character(Animal),
             BATCH = as.character(BATCH),
@@ -48,4 +48,5 @@ if (ExpID == "FK49") {
 } else {stop("Unknown ExpID.")
 }
 
+load(file.path( PATHS$exigo$FK49_input, "FK49_Data_prepared.Rda"))
 

@@ -8,7 +8,9 @@ library(ggplot2)
 library(stringr)
 library(ggrepel)
 library(janitor)
+library(tibble)
 library(limma)
+library(pheatmap)
 source("FK49_Definitions.R")
 
 proteom_input_pwd<-PATHS$proteomics$input
@@ -99,9 +101,6 @@ write.csv2(results_Treatment, file.path(proteom_output_pwd, "results_Treatment_o
 write.csv2(results_Interaction, file.path(proteom_output_pwd, "results_Treatment_x_Sex.csv"), row.names = FALSE)
 write.csv2(results_Female, file.path(proteom_output_pwd, "results_Treatment_female.csv"), row.names = FALSE)
 write.csv2(results_Male, file.path(proteom_output_pwd, "results_Treatment_male.csv"), row.names = FALSE)
-results_Treatment <- results_Treatment
-
-
 
 Proteins <- Proteins %>%
   left_join(results_Treatment, by = "Name") %>%
@@ -144,11 +143,193 @@ p_volcano
 ggsave(plot= p_volcano, filename= paste0("Prots_a_volcano.png"), width= 9, height = 9, dpi = 300, 
        path =proteom_output_pwd)
 
-# Heatmap -----
+# Heatmaps -----
+## Heatmap up -----
+values_for_heatmap_up<-as.data.frame(Proteins%>% filter(adj_pvalue_Treatment<0.05&logFC_Treatment>1)%>%
+                                    select(Name,Genes,contains(c("EtOH","TAM"))) )
+rownames(values_for_heatmap_up)<-values_for_heatmap_up$Name
+values_for_heatmap_up$Name <-NULL
+ann_col <- data.frame(Sample = colnames(values_for_heatmap_up %>% select(-Genes))) %>%
+  separate( Sample, into = c("Sex", "Treatment", "Replicate"),sep = "_") %>%
+  select(-Replicate) %>%
+  mutate(Sex = case_when(Sex == "F" ~ "female", Sex == "M" ~ "male" ),
+         Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment ),
+         Sex = factor( Sex, levels = c("female", "male")),
+         Treatment = factor(Treatment, levels = c("Ctrl", "TAM"))
+  )
+values_for_heatmap_up$Genes <-NULL
+rownames(ann_col) <- colnames(values_for_heatmap_up)
 
 
+ph<-pheatmap(values_for_heatmap_up,
+             cluster_rows = T,
+             cluster_cols = F,
+             show_colnames = F,
+             scale="row",
+            annotation_col = ann_col,
+             annotation_colors = list(Sex=Sex_colors,Treatment= Treatment_colors[c("Ctrl","TAM")]))
+ggsave(ph, file= "02_Heat_sig_up.png",
+       path=proteom_output_pwd, width = 12,
+       height=1+nrow(values_for_heatmap_up)/5,dpi=300, bg="white",limitsize = FALSE)
 
-# Exploratory -----
+## Heatmapt down -----
+values_for_heatmap_down<-as.data.frame(Proteins%>% filter(adj_pvalue_Treatment<0.05 & logFC_Treatment< -1)%>%
+                                       select(Name,Genes,contains(c("EtOH","TAM"))) )
+rownames(values_for_heatmap_down)<-values_for_heatmap_down$Name
+values_for_heatmap_down$Name <-NULL
+ann_col <- data.frame(Sample = colnames(values_for_heatmap_down %>% select(-Genes))) %>%
+  separate( Sample, into = c("Sex", "Treatment", "Replicate"),sep = "_") %>%
+  select(-Replicate) %>%
+  mutate(Sex = case_when(Sex == "F" ~ "female", Sex == "M" ~ "male" ),
+         Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment ),
+         Sex = factor( Sex, levels = c("female", "male")),
+         Treatment = factor(Treatment, levels = c("Ctrl", "TAM")))
+
+values_for_heatmap_down$Genes <-NULL
+rownames(ann_col) <- colnames(values_for_heatmap_down)
+
+
+ph<-pheatmap(
+  values_for_heatmap_down,
+  cluster_rows = T,
+  cluster_cols =F,
+  scale = "row",
+  show_colnames = F,
+    annotation_col = ann_col,
+  annotation_colors = list(
+    Sex = Sex_colors,
+    Treatment = Treatment_colors[c("Ctrl", "TAM")]
+  )
+)
+
+ggsave(ph, file= "02_Heat_sig_down.png",path=proteom_output_pwd,width = 12,
+       height=1+nrow(values_for_heatmap_down)/5,dpi=300, bg="white",limitsize = FALSE)
+
+## HeatmaptTop50 up and Top50 DOwn inone -----
+values_for_heatmap_top100 <- as.data.frame(
+  Proteins %>%
+    filter(adj_pvalue_Treatment < 0.05) %>%
+    arrange(logFC_Treatment) %>%
+    slice_head(n = 50) %>%
+    bind_rows(
+      Proteins %>%
+        filter(adj_pvalue_Treatment < 0.05) %>%
+        arrange(desc(logFC_Treatment)) %>%
+        slice_head(n = 50)
+    ) %>%
+    select(Name, Genes, contains(c("EtOH", "TAM")))
+)
+
+rownames(values_for_heatmap_top100) <- values_for_heatmap_top100$Name
+values_for_heatmap_top100$Name <- NULL
+
+ann_col <- data.frame(
+  Sample = colnames(values_for_heatmap_top100 %>% select(-Genes))
+) %>%
+  separate(Sample, into = c("Sex", "Treatment", "Replicate"), sep = "_") %>%
+  select(-Replicate) %>%
+  mutate(
+    Sex = case_when(Sex == "F" ~ "female", Sex == "M" ~ "male"),
+    Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
+    Sex = factor(Sex, levels = c("female", "male")),
+    Treatment = factor(Treatment, levels = c("Ctrl", "TAM"))
+  )
+
+values_for_heatmap_top100$Genes <- NULL
+rownames(ann_col) <- colnames(values_for_heatmap_top100)
+
+ph <- pheatmap(
+  values_for_heatmap_top100,
+  cluster_rows = TRUE,
+  cluster_cols = T,
+  scale = "row",
+  show_colnames = FALSE,
+  annotation_col = ann_col,
+  annotation_colors = list(
+    Sex = Sex_colors,
+    Treatment = Treatment_colors[c("Ctrl", "TAM")]
+  )
+)
+
+ggsave( ph, file = "02_Heat_top50up_top50down.png",
+  path = proteom_output_pwd,width = 12, height = 2 + nrow(values_for_heatmap_top100) / 8,
+  dpi = 300,bg = "white", limitsize = FALSE)
+# PCA ----
+## PCA decriptive/exploraory -all proteins -----
+
+pca <- prcomp(
+  t(protein_matrix),
+  center = TRUE,
+  scale. = TRUE
+)
+
+# PCA scores
+pca_df <- as.data.frame(pca$x) %>%
+  tibble::rownames_to_column("Sample") %>%
+  tidyr::separate(Sample,  into = c("Sex", "Treatment", "Replicate"), sep = "_" ) %>%
+  mutate(  Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male"  ),
+    Treatment = case_when(Treatment == "EtOH" ~ "Ctrl",
+      TRUE ~ Treatment),Sex = factor(Sex, levels = c("female", "male")),
+    Treatment = factor(Treatment, levels = c("Ctrl", "TAM")))
+
+# PCA Plot
+pca_plot <- ggplot( pca_df, aes(x = PC1, y = PC2, shape = Sex, color = Treatment, fill = Treatment)) +
+  geom_point(size = 4,alpha = 0.5) +
+  stat_ellipse(   aes(x = PC1, y = PC2, group = Treatment, fill = Treatment),
+    type = "norm",level = 0.95,  geom = "polygon",  alpha = 0.05,
+    linewidth = 0) +
+  stat_ellipse(  aes(x = PC1, y = PC2, group = Treatment, fill = Treatment), type = "norm",level = 0.95,
+    alpha = 0.2,linewidth = 0.8) +
+  scale_color_manual( values = Treatment_colors[c("Ctrl", "TAM")] ) +
+  scale_fill_manual(values = Treatment_colors[c("Ctrl", "TAM")] ) +
+  scale_shape_manual( values = Sex_shape) +
+  theme_classic() +
+  labs( x = paste0("PC1 (", round(100 * summary(pca)$importance[2, 1], 1),"%)"),
+    y = paste0( "PC2 (",round(100 * summary(pca)$importance[2, 2], 1),"%)") )
+pca_plot
+ggsave( pca_plot, file = "03_PCA_Proteins_all.png",
+        path = proteom_output_pwd,width = 5, height = 5,
+        dpi = 300,bg = "white", limitsize = FALSE)
+## PCA significant proteins-----
+pca_proteins <- Proteins %>%
+  filter( adj_pvalue_Treatment < 0.05,
+    abs(logFC_Treatment) > 1) %>% pull(Name)
+
+protein_matrix_sig <- protein_matrix[pca_proteins, ]
+pca_sig <- prcomp(
+  t(protein_matrix_sig),
+  center = TRUE,
+  scale. = TRUE)
+
+# PCA scores
+pca_sig_df <- as.data.frame(pca_sig$x) %>%
+  tibble::rownames_to_column("Sample") %>%
+  tidyr::separate(Sample,  into = c("Sex", "Treatment", "Replicate"), sep = "_" ) %>%
+  mutate(  Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male"  ),
+           Treatment = case_when(Treatment == "EtOH" ~ "Ctrl",
+                                 TRUE ~ Treatment),Sex = factor(Sex, levels = c("female", "male")),
+           Treatment = factor(Treatment, levels = c("Ctrl", "TAM")))
+
+# PCA Plot
+pca_sig_plot <- ggplot( pca_sig_df, aes(x = PC1, y = PC2, shape = Sex, color = Treatment, fill = Treatment)) +
+  geom_point(size = 4,alpha = 0.5) +
+  stat_ellipse(  aes(x = PC1, y = PC2, group = Treatment, fill = Treatment),
+                 type = "norm",level = 0.95,  geom = "polygon",  alpha = 0.05,
+                 linewidth = 0) +
+  stat_ellipse(  aes(x = PC1, y = PC2, group = Treatment, fill = Treatment), type = "norm",level = 0.95,
+                alpha = 0.2,linewidth = 0.8) +
+  scale_color_manual( values = Treatment_colors[c("Ctrl", "TAM")] ) +
+  scale_fill_manual(values = Treatment_colors[c("Ctrl", "TAM")] ) +
+  scale_shape_manual( values = Sex_shape) +
+  theme_classic() +
+  labs( x = paste0("PC1 (", round(100 * summary(pca_sig)$importance[2, 1], 1),"%)"),
+        y = paste0( "PC2 (",round(100 * summary(pca_sig)$importance[2, 2], 1),"%)") )
+pca_sig_plot
+ggsave( pca_sig_plot, file = "03_PCA_Proteins_sig.png",
+        path = proteom_output_pwd,width = 5, height = 5,
+        dpi = 300,bg = "white", limitsize = FALSE)
+
+ # Exploratory -----
 biological_oxidations=c("Nnmt","Cyp4a10","Gsta","Cyp2a4","Gstt2",
                         "Ugt1a9","Cyp2c29","Cyp3a11","Gstt1","Fmo2",
                         "Ugp2","Mgst3","Sult1c2","Sult1b1","Adh4")

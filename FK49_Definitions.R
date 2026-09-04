@@ -100,10 +100,9 @@ PATHS <- list(
   metabolomics = list(
     untargeted_xlsx = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_untargetedLiverMetabolomics/Report_M086_untargeted_20260113.xlsx"),
     targeted_xlsx   = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_HILIC09/Report_M086_HILIC09_20251222.xlsx"),
-    rawdata         = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/01_RawData"),
-    output          = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/metabolomics"),
-    targeted_output   = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/targetedLivMetabolome"),
-    untargeted_output = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/untargetedLivMetabolome")
+    rawdata         = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_HILIC09"),
+    output          = paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_Analysis/02_GeneratedData/metabolomics")
+
   ),
   BA = list(
     input =  paste0(parent,"/OneDrive - Universität Salzburg/AG_Tumorimmunologie - Dokumente/Data/Freia Krause/01_Experiments/FK49_CD-HFD_13wks/FK49_BA/Report_M087_BACID01_20251222_withMeta.csv"),
@@ -1128,4 +1127,143 @@ PARAMETERS$microbiome <- list(
                            F3 = "3 wks (CDHFD)", F4 = "7 wks (CDHFD)"),
   diet_short_colors    = c(ND = "darkorange3", CDHFD = "darkviolet"),
   target_genera        = c("Lactobacillus")  # hypothesis-driven targeted analysis
+)
+
+
+# # Note Reactom enriched pathways hierachy -----
+# Metabolism
+# │
+# ├── Biological oxidations 
+# |   |
+# |   |── Aflatoxin activation and detoxification
+# │   ├── Phase I - Functionalization of compounds
+# │   │   └── Cytochrome P450 - arranged by substrate type
+# │   │       ├── Xenobiotics
+# │   │       │  
+# │   │       └── [weitere nicht-signifikante Reactome-Zweige]
+# │   │
+# │   └── Phase II - Conjugation of compounds
+# │       └── Glutathione conjugation
+# │
+# ├── Metabolism of lipids
+# │   ├── Metabolism of steroids
+# │   │   └── Bile acid and bile salt metabolism
+# │   │       └── Recycling of bile acids and salts
+# │   │
+# │   ├── Fatty acid metabolism
+# │   │
+# │   └── Biosynthesis of specialized proresolving mediators (SPMs)
+# │       └── Biosynthesis of DHA-derived SPMs
+# │
+# ├── Drug ADME
+# │   ├── Aspirin ADME
+# │   ├── Prednisone ADME
+# │   └── Paracetamol ADME
+# │
+# ├── Platelet activation, signaling and aggregation
+# │   ├── Platelet degranulation
+# │   │   └── Response to elevated platelet cytosolic Ca2+
+#   │   │
+# │   ├── GRB2:SOS provides linkage to MAPK signaling for Integrins
+# │   │   └── [auch unter Integrin signaling / Platelet Aggregation]
+# │   │
+# │   └── p130Cas linkage to MAPK signaling for integrins
+# │       └── [auch unter Integrin signaling / Platelet Aggregation]
+# │
+# ├── Coagulation pathway
+# │   └── Fibrin formation
+# │
+# ├── Regulation of TLR by endogenous ligand
+# │   ├── Innate Immune System
+# │   └── Toll-like Receptor Cascades
+# │
+# ├── Post-translational protein modification
+# │   └── Post-translational protein phosphorylation
+# │
+# └── Regulation of Insulin-like Growth Factor (IGF) transport
+# and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)
+# 
+PARAMETERS$Proteom <- list(
+  Pathway_parents =c(
+    "Biological oxidations",
+    "Metabolism of lipids",
+    "Drug ADME",
+    "Platelet activation, signaling and aggregation",
+    "Coagulation pathway",
+    "Regulation of TLR by endogenous ligand",
+    "Post-translational protein modification",
+    "Regulation of Insulin-like Growth Factor (IGF) transport
+      and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)"
+  ),
+  Children_of_parents = c(
+    # Biological oxidations
+    "Phase I - Functionalization of compounds",
+    "Cytochrome P450 - arranged by substrate type",
+    "Xenobiotics",
+    "Aflatoxin activation and detoxification",
+    "Phase II - Conjugation of compounds",
+    "Glutathione conjugation",
+  
+    # Metabolism of lipids
+    "Metabolism of steroids",
+    "Bile acid and bile salt metabolism",
+    "Recycling of bile acids and salts",
+    "Fatty acid metabolism",
+    "Biosynthesis of specialized proresolving mediators (SPMs)",
+    "Biosynthesis of DHA-derived SPMs",
+  
+    # Drug ADME
+    "Aspirin ADME",
+    "Prednisone ADME",
+    "Paracetamol ADME",
+    
+    # Platelet activation, signaling and aggregation
+    "Platelet degranulation",
+    "Response to elevated platelet cytosolic Ca2+",
+    "GRB2:SOS provides linkage to MAPK signaling for Integrins",
+    "p130Cas linkage to MAPK signaling for integrins",
+  
+    # Coagulation pathway
+    "Fibrin formation",
+  
+    # Regulation of TLR by endogenous ligand
+    # keine signifikanten Kinder in deiner Liste
+  
+    # Post-translational protein modification
+    "Post-translational protein phosphorylation"
+  ),
+Pathway_lowest = c(
+    # Biological oxidations
+    "Aflatoxin activation and detoxification",
+    #"Cytochrome P450 - arranged by substrate type",
+    "Glutathione conjugation",
+  
+    # Metabolism of lipids
+    "Recycling of bile acids and salts",
+    "Fatty acid metabolism",
+    "Biosynthesis of DHA-derived SPMs",
+  
+    # Drug ADME
+    "Aspirin ADME",
+    "Prednisone ADME",
+    "Paracetamol ADME",
+  
+    # Platelet activation, signaling and aggregation
+    "Response to elevated platelet cytosolic Ca2+",
+    "GRB2:SOS provides linkage to MAPK signaling for Integrins",
+    "p130Cas linkage to MAPK signaling for integrins",
+  
+    # Coagulation pathway
+    "Fibrin formation",
+  
+    #Regulation of TLR by endogenous ligand
+      "Toll-like Receptor Cascades",
+      "Innate Immune System",
+  
+    # Post-translational protein modification
+    "Post-translational protein phosphorylation",
+    # Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)
+    "Regulation of Insulin-like Growth Factor (IGF) transport
+      and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)"
+  )
 )

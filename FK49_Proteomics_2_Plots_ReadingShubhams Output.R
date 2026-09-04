@@ -22,11 +22,12 @@ proteom_output_pwd <- PATHS$proteomics$output
 
 # Load data -------------------------------------------------------------------
 
-Proteins <- read.csv2(file.path(proteom_output_pwd,  "FK49_Proteomics_Statistics.csv" ))
+Proteins <- read.csv2(file.path(proteom_output_pwd,  "Statistics/FK49_Proteomics_Statistics.csv" ))
 
-protein_matrix <- readRDS(file.path(proteom_output_pwd,"FK49_Proteomics_protein_matrix.rds" ))
-meta <- readRDS(file.path(proteom_output_pwd,"FK49_Proteomics_metadata.rds"))
-
+protein_matrix <- readRDS(file.path(proteom_output_pwd,"Data/FK49_Proteomics_protein_matrix.rds" ))
+meta <- readRDS(file.path(proteom_output_pwd,"Data/FK49_Proteomics_metadata.rds"))
+# load calculateion of Correaltion animals
+# load calculattion of Crorealtion proteins
 # Volcano ---------------------------------------------------------------------
 p_volcano <- ggplot(Proteins, aes(x = logFC_Treatment,y = -log10(pValue_Treatment))) +
   geom_point( aes(fill = Direction),alpha = 0.5,size = 3, stroke = 0.5, shape = 21, color = "black" ) +
@@ -44,7 +45,7 @@ p_volcano <- ggplot(Proteins, aes(x = logFC_Treatment,y = -log10(pValue_Treatmen
 
 p_volcano
 
-ggsave( plot = p_volcano, filename = "Prots_a_volcano.png",
+ggsave( plot = p_volcano, filename = "/Plots/01_Prots_a_volcano.png",
   width = 9,height = 9,  dpi = 300,  path = proteom_output_pwd)
 
 
@@ -54,14 +55,14 @@ ggsave( plot = p_volcano, filename = "Prots_a_volcano.png",
 values_for_heatmap_up <- as.data.frame(
   Proteins %>%
     filter( adj_pvalue_Treatment < 0.05 & logFC_Treatment > 1 ) %>%
-    select( Name, Genes,contains(c("EtOH", "TAM"))))
+    dplyr::select( Name, Genes,contains(c("EtOH", "TAM"))))
 
 rownames(values_for_heatmap_up) <- values_for_heatmap_up$Name
 values_for_heatmap_up$Name <- NULL
 
-ann_col <- data.frame(Sample = colnames(values_for_heatmap_up %>% select(-Genes))) %>%
+ann_col <- data.frame(Sample = colnames(values_for_heatmap_up %>% dplyr::select(-Genes))) %>%
   separate(  Sample,into = c("Sex", "Treatment", "Replicate"),sep = "_" ) %>%
-  select(-Replicate) %>%
+  dplyr::select(-Replicate) %>%
   mutate( Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male" ),
     Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
     Sex = factor( Sex,levels = c("female", "male")),Treatment = factor(Treatment,levels = c("Ctrl", "TAM")) )
@@ -80,7 +81,7 @@ ph <- pheatmap(
                             Treatment = Treatment_colors[c("Ctrl", "TAM")])
   )
 
-ggsave( ph, file = "02_Heat_sig_up.png",  path = proteom_output_pwd,
+ggsave( ph, file = "/Plots/02_Heat_sig_up.png",  path = proteom_output_pwd,
   width = 12,  height = 1 + nrow(values_for_heatmap_up) / 5,
   dpi = 300,  bg = "white",  limitsize = FALSE)
 
@@ -88,14 +89,14 @@ ggsave( ph, file = "02_Heat_sig_up.png",  path = proteom_output_pwd,
 ## Heatmap significant down ---------------------------------------------------
 values_for_heatmap_down <- as.data.frame(
   Proteins %>%filter( adj_pvalue_Treatment < 0.05 & logFC_Treatment < -1) %>%
-    select( Name, Genes,contains(c("EtOH", "TAM"))))
+    dplyr::select( Name, Genes,contains(c("EtOH", "TAM"))))
 
 rownames(values_for_heatmap_down) <- values_for_heatmap_down$Name
 values_for_heatmap_down$Name <- NULL
 
-ann_col <- data.frame(Sample = colnames(values_for_heatmap_down %>% select(-Genes))) %>%
+ann_col <- data.frame(Sample = colnames(values_for_heatmap_down %>% dplyr::select(-Genes))) %>%
   separate( Sample, into = c("Sex", "Treatment", "Replicate"),sep = "_") %>%
-  select(-Replicate) %>%
+  dplyr::select(-Replicate) %>%
   mutate(Sex = case_when( Sex == "F" ~ "female",Sex == "M" ~ "male"),
     Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
     Sex = factor( Sex,levels = c("female", "male")),
@@ -118,7 +119,7 @@ ph <- pheatmap(
 
 ggsave(
   ph,
-  file = "02_Heat_sig_down.png",
+  file = "/Plots/02_Heat_sig_down.png",
   path = proteom_output_pwd,
   width = 12,
   height = 1 + nrow(values_for_heatmap_down) / 5,
@@ -140,15 +141,15 @@ values_for_heatmap_top100 <- as.data.frame(
         filter(adj_pvalue_Treatment < 0.05) %>%
         arrange(desc(logFC_Treatment)) %>%
         slice_head(n = 50)) %>%
-    select( Name,  Genes, contains(c("EtOH", "TAM"))))
+    dplyr::select( Name,  Genes, contains(c("EtOH", "TAM"))))
 
 rownames(values_for_heatmap_top100) <-values_for_heatmap_top100$Name
 
 values_for_heatmap_top100$Name <- NULL
 
-ann_col <- data.frame(Sample = colnames(values_for_heatmap_top100 %>% select(-Genes))) %>%
+ann_col <- data.frame(Sample = colnames(values_for_heatmap_top100 %>% dplyr::select(-Genes))) %>%
   separate(  Sample,into = c("Sex", "Treatment", "Replicate"),sep = "_" ) %>%
-  select(-Replicate) %>%
+  dplyr::select(-Replicate) %>%
   mutate( Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male" ),
     Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
     Sex = factor(Sex,levels = c("female", "male") ),
@@ -170,7 +171,7 @@ ph <- pheatmap(
   )
 )
 
-ggsave( ph, file = "02_Heat_top50up_top50down.png", path = proteom_output_pwd,
+ggsave( ph, file = "/Plots/02_Heat_top50up_top50down.png", path = proteom_output_pwd,
   width = 12, height = 2 + nrow(values_for_heatmap_top100) / 8,
   dpi = 300,bg = "white", limitsize = FALSE)
 
@@ -201,7 +202,7 @@ pca_plot <- ggplot( pca_df, aes(x = PC1,y = PC2,shape = Sex,color = Treatment,fi
 
 pca_plot
 
-ggsave( pca_plot, file = "03_PCA_Proteins_all.png", path = proteom_output_pwd,
+ggsave( pca_plot, file = "/Plots/03_PCA_Proteins_all.png", path = proteom_output_pwd,
   width = 6.5,height = 6, dpi = 300,bg = "white", limitsize = FALSE)
 
 ## PCA significant proteins ---------------------------------------------------
@@ -238,8 +239,16 @@ pca_sig_plot <- ggplot( pca_sig_df,  aes(x = PC1,y = PC2,shape = Sex,color = Tre
 
 pca_sig_plot
 
-ggsave( pca_sig_plot, file = "03_PCA_Proteins_sig.png", path = proteom_output_pwd,
+ggsave( pca_sig_plot, file = "/Plots/03_PCA_Proteins_sig.png", path = proteom_output_pwd,
   width = 6.5,height = 6, dpi = 300,bg = "white", limitsize = FALSE)
+# Correaltions PLots HEatmaps -----
+## Correaltion between ANimals -----
+# ggsave(Cor_Animals_spearman, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Animals_Spearman.png, width = 8, height = 8, dpi = 300, bg= "white)
+# ggsave(Cor_Animals_pearson, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Animals_Pearson.png, width = 8, height = 8, dpi = 300, bg= "white)
+
+# Correaltion between proteins -----
+# ggsave(Cor_Proteins_spearman, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Proteins_Spearman.png, width = 8, height = 8, dpi = 300, bg= "white)
+# ggsave(Cor_Proteins_pearson, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Proteins_Pearson.png, width = 8, height = 8, dpi = 300, bg= "white)
 
 # VennDagramm -----
 # Venn Proteins Overall in TAM EtOH
@@ -321,7 +330,7 @@ Conjugation <- c(
 
 values_for_heatmap <- as.data.frame(
   Proteins %>%
-    select(
+    dplyr::select(
       Name,
       Genes,
       contains(c("Etoh", "Tam"))
@@ -366,7 +375,7 @@ ann <- data.frame(
     into = c("Sex", "Treatment", "Replicate"),
     sep = "_"
   ) %>%
-  select(-Replicate) %>%
+  dplyr::select(-Replicate) %>%
   mutate(
     Sex = case_when(
       Sex == "F" ~ "female",
@@ -419,7 +428,7 @@ values_for_heatmap <- values_for_heatmap[ord, ]
 annotation_row <- annotation_row[ord, ]
 
 values_for_heatmap <- values_for_heatmap %>%
-  select(-Name, -Genes)
+  dplyr::select(-Name, -Genes)
 
 gaps_row <- cumsum(
   table(row_category[ord])
@@ -445,7 +454,7 @@ print(p_heat)
 
 ggsave(
   plot = p_heat,
-  filename = "Heatmap_BA_clustered.png",
+  filename = "/Plots/Heatmap_BA_clustered.png",
   limitsize = FALSE,
   width = 9,
   height = nrow(values_for_heatmap) / 7 + 3,
@@ -475,7 +484,7 @@ PPAR_Coactivators <- c(
 
 values_for_heatmap <- as.data.frame(
   Proteins %>%
-    select(
+    dplyr::select(
       Name,
       Genes,
       contains(c("Etoh", "Tam"))
@@ -517,7 +526,7 @@ ann <- data.frame(
     into = c("Sex", "Treatment", "Replicate"),
     sep = "_"
   ) %>%
-  select(-Replicate) %>%
+  dplyr::select(-Replicate) %>%
   mutate(
     Sex = case_when(
       Sex == "F" ~ "female",
@@ -565,7 +574,7 @@ values_for_heatmap <- values_for_heatmap[ord, ]
 annotation_row <- annotation_row[ord, ]
 
 values_for_heatmap <- values_for_heatmap %>%
-  select(-Name, -Genes)
+  dplyr::select(-Name, -Genes)
 
 gaps_row <- cumsum(
   table(row_category[ord])
@@ -591,7 +600,7 @@ print(p_heat)
 
 ggsave(
   plot = p_heat,
-  filename = "Heatmap_PPAR_clustered.png",
+  filename = "/Plots/Heatmap_PPAR_clustered.png",
   limitsize = FALSE,
   width = 9,
   height = nrow(values_for_heatmap) / 7 + 3,
@@ -619,7 +628,7 @@ Metabolic_Pathways <- unique(
 
 values_for_heatmap <- as.data.frame(
   Proteins %>%
-    select(
+    dplyr::select(
       Name,
       Genes,
       contains(c("Etoh", "Tam"))
@@ -649,7 +658,7 @@ ann <- data.frame(
     into = c("Sex", "Treatment", "Replicate"),
     sep = "_"
   ) %>%
-  select(-Replicate) %>%
+  dplyr::select(-Replicate) %>%
   mutate(
     Sex = case_when(
       Sex == "F" ~ "female",
@@ -658,7 +667,7 @@ ann <- data.frame(
   )
 
 values_for_heatmap <- values_for_heatmap %>%
-  select(-Name, -Genes)
+  dplyr::select(-Name, -Genes)
 
 p_metabolism <- pheatmap::pheatmap(
   values_for_heatmap,
@@ -678,7 +687,7 @@ print(p_metabolism)
 
 ggsave(
   plot = p_metabolism,
-  filename = "Heatmap_Metabolic_pathways_clustered.png",
+  filename = "/Plots/Heatmap_Metabolic_pathways_clustered.png",
   limitsize = FALSE,
   width = 10,
   height = nrow(values_for_heatmap) / 7 + 3,

@@ -113,7 +113,6 @@ reactome_all  <- run_Reactome(all_proteins)
 
 
 reactome_all_df <- as.data.frame(reactome_all) %>%
-  filter(p.adjust < 0.05) %>%
   arrange(p.adjust)
 # 
 # get_reactome_parents <- function(pathway_id) {
@@ -188,18 +187,11 @@ reactome_parents <- lapply(
 
 
 hierarchy <- lapply(seq_along(reactome_parents), function(i) {
-  
   paths <- reactome_parents[[i]]
-  
-  if (is.null(paths) || length(paths) == 0) {
-    return(NULL)
-  }
-  
+  if (is.null(paths) || length(paths) == 0) { return(NULL)}
   child_id <- reactome_all_df$ID[i]
   child_name <- reactome_all_df$Description[i]
-  
   do.call(rbind, lapply(paths, function(path) {
-    
     if (!is.list(path) || length(path) == 0) {
       return(NULL)
     }
@@ -263,7 +255,7 @@ hierarchy %>%
   arrange(Child, Parent)
 
 reactome_all_df_hierachy <- reactome_all_df %>%
-    left_join(  hierarchy %>%   dplyr::select(Child, Parent),
+    left_join(hierarchy %>%   dplyr::select(Child, Parent),
                 by = c("Description" = "Child") )%>%
     mutate( Is_parent_of_significant = Description %in% Parent)
 # Save enrichment results -----------------------------------------------------

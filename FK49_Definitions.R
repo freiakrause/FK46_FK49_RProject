@@ -1177,7 +1177,7 @@ PARAMETERS$microbiome <- list(
 # │   ├── Innate Immune System
 # │   └── Toll-like Receptor Cascades
 # │
-# ├── Post-translational protein modification
+# ├──" Post-translational protein modification" not ns in my data
 # │   └── Post-translational protein phosphorylation
 # │
 # └── Regulation of Insulin-like Growth Factor (IGF) transport
@@ -1191,9 +1191,8 @@ PARAMETERS$Proteom <- list(
     "Platelet activation, signaling and aggregation",
     "Coagulation pathway",
     "Regulation of TLR by endogenous ligand",
-    "Post-translational protein modification",
-    "Regulation of Insulin-like Growth Factor (IGF) transport
-      and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)"
+    "Post-translational protein phosphorylation",
+    "Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)"
   ),
   Children_of_parents = c(
     # Biological oxidations
@@ -1224,13 +1223,13 @@ PARAMETERS$Proteom <- list(
     "p130Cas linkage to MAPK signaling for integrins",
   
     # Coagulation pathway
-    "Fibrin formation",
+    "Fibrin formation" #,
   
     # Regulation of TLR by endogenous ligand
     # keine signifikanten Kinder in deiner Liste
   
-    # Post-translational protein modification
-    "Post-translational protein phosphorylation"
+    # # Post-translational protein modification
+    # "Post-translational protein phosphorylation" does not have the parent in my data
   ),
 Pathway_lowest = c(
     # Biological oxidations
@@ -1263,7 +1262,6 @@ Pathway_lowest = c(
     # Post-translational protein modification
     "Post-translational protein phosphorylation",
     # Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)
-    "Regulation of Insulin-like Growth Factor (IGF) transport
-      and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)"
+    "Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)"
   )
 )

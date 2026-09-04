@@ -14,7 +14,7 @@ library(pheatmap)
 library(pathview)
 library(AnnotationDbi)
 source("FK49_Definitions.R")
-
+# Read Input -----
 proteom_input_pwd  <- PATHS$proteomics$input
 proteom_output_pwd <- PATHS$proteomics$output
 stats_pwd <- file.path(proteom_output_pwd, "Statistics")
@@ -71,12 +71,13 @@ save_chord <- function(enrich, filename, n = 10,
                        pathway_parents = NULL,
                        children_of_parents = NULL,
                        pathway_lowest = NULL,
-                       mode = "all") {
+                       mode = "all",
+                       folder) {
   
   if (is.null(enrich) || nrow(as.data.frame(enrich)) == 0) return(NULL)
   
   df <- as.data.frame(enrich) %>%
-    filter(p.adjust < 0.05) %>%
+   
     arrange(p.adjust)
   
   # Reactome hierarchy filtering
@@ -117,10 +118,8 @@ save_chord <- function(enrich, filename, n = 10,
     setNames(rep("grey70", length(proteins)), proteins)
   )
   
-  png(
-    paste0(file.path(proteom_output_pwd, "Plots/", filename)),
-    width = 13, height = 13, units = "in", res = 300
-  )
+  png(paste0(file.path(proteom_output_pwd, "Pathways/",folder,"/", filename)),
+    width = 13, height = 13, units = "in", res = 300)
   
   chordDiagram(
     links,
@@ -185,83 +184,129 @@ save_chord <- function(enrich, filename, n = 10,
   
   dev.off()
   circos.clear()
+  
+  proteins <- df %>%
+    dplyr::select(Description, geneID) %>%
+    tidyr::separate_rows(geneID, sep = "/") %>%
+    filter(!is.na(geneID), geneID != "") %>%
+    distinct(Description, geneID)
+  proteins
 }
 
 # GO chord plots --------------------------------------------------------------
-# save_chord(ego_up,   "06_Chord_GO_up.png")
-# save_chord(ego_down, "06_Chord_GO_down.png")
-save_chord(
-  ego_all,
-  "06_Chord_GO_ALL_significant_top10.png",
-  n = 10
-)
-
+# save_chord(ego_up,   "06_Chord_GO_up.png",folder= "Parents")
+# save_chord(ego_down, "06_Chord_GO_down.png",folder= "Parents")
+save_chord( ego_all,"06_Chord_GO_ALL_significant_top10.png",n = 10,folder= "Parents")
 
 # KEGG chord plots ------------------------------------------------------------
-# save_chord(kegg_up,   "06_Chord_KEGG_up.png")
-# save_chord(kegg_down, "06_Chord_KEGG_down.png")
-save_chord(
-  kegg_all,
-  "06_Chord_KEGG_ALL_significant_top10.png",
-  n = 10
-)
-
+# save_chord(kegg_up,   "06_Chord_KEGG_up.png",folder= "Parents")
+# save_chord(kegg_down, "06_Chord_KEGG_down.png",folder= "Parents")
+save_chord( kegg_all,  "06_Chord_KEGG_ALL_significant_top10.png",  n = 10,folder= "Parents")
 
 # Reactome chord plots --------------------------------------------------------
-# save_chord(reactome_up,   "06_Chord_Reactome_up.png")
-# save_chord(reactome_down, "06_Chord_Reactome_down.png")
+# save_chord(reactome_up,   "06_Chord_Reactome_up.png",folder= "Parents")
+# save_chord(reactome_down, "06_Chord_Reactome_down.png",folder= "Parents")
+chord_all <- save_chord(reactome_all,  "06_Chord_Reactome_ALL_significant_topall.png",n = Inf,folder="Parents")
 
-save_chord(
-  reactome_all,
-  "06_Chord_Reactome_ALL_significant_topall.png",
-  n = 28
+chord_parents <- save_chord(reactome_all, "06_Reactome_All_parents_chord.png",  pathway_parents = PARAMETERS$Proteom$Pathway_parents,
+  mode = "parents", n = Inf,folder= "Parents")
+
+chord_children <- save_chord( reactome_all, "06_Reactome_All_children_chord.png", children_of_parents = PARAMETERS$Proteom$Children_of_parents,
+  mode = "children",n = Inf,folder= "Children")
+
+chord_children_top10 <- save_chord(reactome_all,"06_Reactome_All_children_chord_top10.png", children_of_parents = PARAMETERS$Proteom$Children_of_parents,
+  mode = "children",n = 10,folder= "Children")
+
+chord_reduced <- save_chord( reactome_all, "06_Reactome_All_reduced_chord.png",
+  pathway_lowest = PARAMETERS$Proteom$Pathway_lowest, mode = "reduced", n = Inf,folder= "Reduced")
+# Summary: number of unique proteins per chord plot --------------------------
+chord_summary <- data.frame(
+  Chordplot = c("All significant",  "Parents",
+    "Children",   "Children top10",   "Reduced" ),
+  Pathways = c(
+    length(unique(chord_all$Description)),
+    length(unique(chord_parents$Description)),
+    length(unique(chord_children$Description)),
+    length(unique(chord_children_top10$Description)),
+    length(unique(chord_reduced$Description)) ),
+  
+  Proteins = c(  
+    length(unique(chord_all$geneID)),
+    length(unique(chord_parents$geneID)),
+    length(unique(chord_children$geneID)),
+    length(unique(chord_children_top10$geneID)),
+    length(unique(chord_reduced$geneID))  )
 )
 
-save_chord(
-  reactome_all,
-  "06_Reactome_All_parents_chord.png",
-  pathway_parents = PARAMETERS$Proteom$Pathway_parents,
-  mode = "parents",
-  n = 28
-)
+print(chord_summary)
 
-save_chord(
-  reactome_all,
-  "06_Reactome_All_children_chord.png",
-  children_of_parents = PARAMETERS$Proteom$Children_of_parents,
-  mode = "children",
-  n = 28
-)
 
-save_chord(
-  reactome_all,
-  "06_Reactome_All_children_chord_top10.png",
-  children_of_parents = PARAMETERS$Proteom$Children_of_parents,
-  mode = "children",
-  n = 10
-)
+# Proteins per pathway --------------------------------------------------------
+proteins_per_pathway <- chord_parents %>%
+  group_by(Description) %>%
+  summarise(  n_proteins = n_distinct(geneID),
+    Proteins = paste(sort(unique(geneID)), collapse = ", "),  .groups = "drop") %>%
+  arrange(desc(n_proteins))
 
-save_chord(
-  reactome_all,
-  "06_Reactome_All_reduced_chord.png",
-  pathway_lowest = PARAMETERS$Proteom$Pathway_lowest,
-  mode = "reduced",
-  n = 28
-)
-# Reactome proteins -----------------------------------------------------------
+print(proteins_per_pathway)
+
+# Check: are all proteins from the significant parent pathways included? -----
+significant_parent_proteins <- reactome_all %>%
+  as.data.frame() %>%
+  filter(Description %in% PARAMETERS$Proteom$Pathway_parents) %>%
+  dplyr::select(Description, geneID) %>%
+  tidyr::separate_rows(geneID, sep = "/") %>%
+  filter(!is.na(geneID), geneID != "") %>%
+  distinct(geneID)
+
+parent_chord_proteins <- chord_parents %>%distinct(geneID)
+missing_from_parent_chord <- setdiff( significant_parent_proteins$geneID, parent_chord_proteins$geneID)
+extra_in_parent_chord <- setdiff( parent_chord_proteins$geneID, significant_parent_proteins$geneID)
+# Save detailed tables --------------------------------------------------------
+write.csv2(chord_summary,file.path(  proteom_output_pwd,  "Data/Reactome_Chord_protein_summary.csv"),row.names = FALSE)
+write.csv2( proteins_per_pathway, file.path(proteom_output_pwd, "Data/Reactome_Chord_Parent_proteins_per_pathway.csv" ),
+  row.names = FALSE)
+
+# # Reactome proteins -----------------------------------------------------------
 reactome_df <- as.data.frame(reactome_all) %>%
-  filter(p.adjust < 0.05) %>%
   arrange(p.adjust) %>%
-  slice_head(n = 10) %>%
   dplyr::select(ID,Description, geneID) %>%
   separate_rows(geneID, sep = "/")
+
+
+# Compare proteins in each chordplot with ALL significant ---------------------
+
+all_chord_proteins <- chord_all %>% distinct(geneID)
+compare_chord_proteins <- function(chord_proteins, name) {
+  current <- chord_proteins %>%  distinct(geneID)
+  missing <- setdiff( all_chord_proteins$geneID,current$geneID)
+  additional <- setdiff(current$geneID, all_chord_proteins$geneID )
+  common <- intersect(all_chord_proteins$geneID,current$geneID)
+  data.frame( Chordplot = name,  Proteins_in_all = length(all_chord_proteins$geneID),
+    Proteins_in_current = length(current$geneID),  Common = length(common),
+    Missing_vs_all = length(missing),   Additional_vs_all = length(additional),
+    Missing_proteins = paste(sort(missing), collapse = ", "),
+    Additional_proteins = paste(sort(additional), collapse = ", "))
+}
+
+
+chord_comparison <- bind_rows(
+  compare_chord_proteins( chord_parents,  "Parents" ),
+  compare_chord_proteins( chord_children, "Children"),
+  compare_chord_proteins( chord_children_top10, "Children top10"),
+  compare_chord_proteins( chord_reduced,"Reduced" ))
+
+print(chord_comparison)
+
+write.csv2( chord_comparison, file.path(proteom_output_pwd, "Data/Reactome_Chord_protein_comparison_vs_all.csv" ), 
+            row.names = FALSE)
 write.csv2(reactome_df,file.path(proteom_output_pwd,"Data/Reactome_top10_df.csv"),  row.names = FALSE)
 
 
 # Protein abundances in long format ------------------------------------------
 protein_long <- Proteins %>%
-  dplyr::select(Genes,adj_pvalue_Treatment, starts_with("F_"), starts_with("M_")) %>%
-  pivot_longer(c(-Genes, -adj_pvalue_Treatment),  
+  dplyr::select(Name,Genes,adj_pvalue_Treatment, starts_with("F_"), starts_with("M_")) %>%
+  pivot_longer(c(-Genes, -Name,-adj_pvalue_Treatment),  
                  names_to = "Sample",values_to = "ProteinValue") %>%
   separate(  Sample,into = c("Sex", "Treatment", "Replicate"),sep = "_" ) %>%
   dplyr::select(-Replicate) %>%
@@ -269,117 +314,6 @@ protein_long <- Proteins %>%
           Treatment = factor(Treatment, levels=c("Ctrl","TAM")),
           Sex = case_when(Sex == "F" ~ "female", Sex == "M" ~ "male"),
           Sex= factor(Sex, levels = c("female", "male")))
-
-# Violin plots Proteins that drive enrichement of that pathway-----------------------------------------------
-for (reactom in unique(reactome_df$Description)) {
-  
-  proteins_reactom <- reactome_df %>%
-    filter(Description == reactom) %>%
-    pull(geneID)
-  
-  plot_df <- protein_long %>%
-    filter(Genes %in% proteins_reactom) %>%
-    mutate(Genes = factor(Genes, levels = proteins_reactom))
-  
-  p <- ggplot(plot_df, aes(x = Treatment, y = ProteinValue, fill = Treatment, shape=Sex)) +
-    geom_violin(trim = FALSE, alpha = 0.4) +
-    geom_boxplot(width = 0.15, outlier.shape = NA) +
-    geom_jitter(width = 0.08, size = 1.5) +
-    scale_fill_manual(values=Treatment_colors[c("Ctrl","TAM")])+
-    scale_shape_manual(values=Sex_shape)+
-    facet_wrap(~ Genes, scales = "free_y") +
-    theme_classic() +
-    labs( title = reactom,x = NULL, y = "Log2-normalized protein abundance" )+
-    geom_text(data = distinct(plot_df, Genes, adj_pvalue_Treatment),aes(x = 1.5,y = Inf,
-          label = paste0("adj. p = ", format.pval(adj_pvalue_Treatment, digits = 2))),
-      vjust = 1.5,inherit.aes = FALSE  )
-  
-  ggsave( file.path(proteom_output_pwd,  paste0("Plots/Violin_Reactome_", make.names(reactom), ".png")),
-    p,  width = 12,    height = 8,  dpi = 300 )
-}
-# ALLlittle less shittyyyy  ------
-# #maybe reanem stuff so that it is not that ocnfusing
-# mabe in clude p value of tested proteins as row annotation 
-# maybe do violins of proteins
-# how can i vizualise the pathyw itself?
-# Reactome pathway heatmaps ---------------------------------------------------
-
-
-# Keep ALL pathway proteins that are present in the complete protein matrix --
-# Notes:
-# reactome_df<- (signifinaclt diff )proteins of my matric that drive the enrichemnt of the rectome pwd (top10 pwd)
-# reactome_proteins = all proteins in my top10 enriched reactome oathways downlodad from reactome
-# reactome_prots_in_my_prots = overlap of reactom_proteins and my protein matrix
-# pathway_id: pathway id of my significantly enrichet top 10 reactome pathways
-# # pathway_names: pathway id of my significantly enrichet top 10 reactome pathways
-# 
-# reactome_prots_in_my_prots <- reactome_proteins %>%
-#   filter(identifier %in% Proteins$Protein.Group) %>%
-#   dplyr::select(ID, identifier) %>%
-#   distinct()
-# 
-# pathway_ids <- unique(reactome_prots_in_my_prots$ID)
-# pathway_names <- reactome_df %>%
-#   dplyr::filter(ID %in% pathway_ids) %>%
-#   dplyr::select(ID, Description)
-# # Heatmap data ---------------------------------------------------------------
-# heatmap_list <- list()
-# 
-# for (pw in pathway_ids) {
-#   
-#   ##Proteins of this pathway -----
-#   ids_this_pathway <- reactome_prots_in_my_prots %>%
-#     dplyr::filter(ID == pw) %>%
-#     dplyr::pull(identifier)
-#   
-#   ## matrix for this proteins ------
-#   mat <- Proteins %>%
-#     dplyr::filter(Protein.Group %in% ids_this_pathway) %>%
-#     dplyr::select(Genes, starts_with("F_"), starts_with("M_")) %>%
-#     tibble::column_to_rownames("Genes") %>%
-#     as.matrix()
-#   ## Colannotation -----------------------------------------------------------
-#   annotation_col <- data.frame( Treatment = ifelse(grepl("_EtOH_", colnames(mat)), "Ctrl","TAM" ),
-#     Sex = ifelse( grepl("^F_", colnames(mat)),"female","male"),
-#     row.names = colnames(mat))
-#   annotation_col$Sex <- factor( annotation_col$Sex, levels = c("female", "male"))
-#   annotation_col$Treatment <- factor( annotation_col$Treatment,  levels = c("Ctrl", "TAM"))
-#   ## if only one protein dont do heatmap -----
-#   if (nrow(mat) < 2) {
-#     warning(paste("Pathway", pw, "hat weniger als 2 Proteine - übersprungen"))
-#     next
-#   }
-#     title_txt <- pathway_names$Description[pathway_names$ID == pw]
-#   
-#   ##generated the heatmap -----
-#   heatmap_list[[pw]] <- pheatmap(
-#     mat,
-#     scale = "row",
-#     annotation_col = annotation_col,
-#     # annotation_row = annotation_row,
-#     cluster_rows = TRUE,
-#     cluster_cols = TRUE,
-#     border_color = NA,
-#     fontsize_row = 8,
-#     fontsize_col = 8,
-#     show_colnames = FALSE,
-#     annotation_colors = list( Sex = Sex_colors,Treatment = Treatment_colors[c("Ctrl", "TAM")])
-#     )
-# }
-# for (pw in pathway_ids) {
-#   if (!is.null(heatmap_list[[pw]])) {
-#     title_txt <- pathway_names$Description[pathway_names$ID == pw]
-#     filename_safe <- gsub("[^A-Za-z0-9]", "_", title_txt)  # Sonderzeichen raus für Dateinamen
-#     
-#     png(file.path(proteom_output_pwd, paste0("Plots/08_Heatmap_",filename_safe, ".png")),
-#         width = 1200, height = 1000, res = 300)
-#     print(heatmap_list[[pw]])
-#     dev.off()
-#   }
-# }
-
-# Reactome pathway heatmaps ---------------------------------------------------
-str(reactome_all)
 head(reactome_all)
 # Significant Reactome pathways
 reactome_sig <- as.data.frame(reactome_all) %>%
@@ -391,65 +325,267 @@ head(reactome_sig)
 reactome_prots_in_my_prots <- reactome_proteins %>%
   filter(identifier %in% Proteins$Protein.Group) %>%
   dplyr::select(ID, identifier) %>%
-  distinct()
-str(reactome_prots_in_my_prots)
-head(reactome_prots_in_my_prots)
-# Add pathway names
-reactome_prots_in_my_prots <- reactome_prots_in_my_prots %>%
+  distinct()%>%
   left_join(reactome_sig, by = "ID") %>%
-  filter(!is.na(Description))
-str(reactome_prots_in_my_prots)
-head(reactome_prots_in_my_prots)
+  filter(!is.na(Description))%>%
+  dplyr::select(ID, Description, identifier) %>%
+  left_join(Proteins %>%  dplyr::select(Protein.Group, Genes) %>%
+              distinct(),   by = c("identifier" = "Protein.Group"))
+# GEta reactom ebranch for ancestry stuff -----
+get_reactome_branch <- function(pathway) {
+  
+  branch <- pathway
+  
+  repeat {
+    
+    children <- reactome_all %>%
+      filter(Parent %in% branch) %>%
+      pull(Description) %>%
+      unique()
+    
+    new_children <- setdiff(children, branch)
+    
+    if (length(new_children) == 0) break
+    
+    branch <- c(branch, new_children)
+  }
+  
+  unique(branch)
+}
+# Violin plots Proteins that drive enrichement of that pathway-----------------------------------------------
+# for (reactom in unique(reactome_df$Description)) 
+print_violins <- function(reactome_df, reactome, folder, protein_list = NULL) {
+  
+  if (is.null(protein_list)) {
+    
+    pathways_branch <- get_reactome_branch(reactome)
+    
+    proteins_reactome <- reactome_df %>%
+      filter(Description %in% pathways_branch) %>%
+      dplyr::select(geneID) %>%
+      tidyr::separate_rows(geneID, sep = "/") %>%
+      filter(!is.na(geneID), geneID != "") %>%
+      pull(geneID) %>%
+      unique()
+    
+  } else {
+    
+    proteins_reactome <- protein_list
+  }
+  
+  plot_df <- protein_long %>%
+    filter(Genes %in% proteins_reactome) %>%
+    mutate(
+      Genes = factor(Genes, levels = proteins_reactome),
+      Name = factor(Name)
+    )
+  
+  if (nrow(plot_df) == 0) return(NULL)
+  
+  p <- ggplot(
+    plot_df,
+    aes(x = Treatment, y = ProteinValue, fill = Treatment)
+  ) +
+    geom_violin(
+      trim = FALSE,
+      alpha = 0.4
+    ) +
+    geom_point(
+      position = position_dodge2(width = 0.5),
+      size = 1.5,
+      aes(shape = Sex),
+      alpha = 0.5
+    ) +
+    geom_boxplot(
+      width = 0.15,
+      outlier.shape = NA,
+      alpha = 0.5
+    ) +
+    scale_fill_manual(
+      values = Treatment_colors[c("Ctrl", "TAM")]
+    ) +
+    scale_shape_manual(values = Sex_shape) +
+    facet_wrap(~ Name, scales = "free_y") +
+    theme_classic() +
+    labs(
+      title = reactome,
+      x = NULL,
+      y = "Log2-normalized protein abundance"
+    ) +
+    geom_text(
+      data = distinct(plot_df, Name, adj_pvalue_Treatment),
+      aes(
+        x = 1.5,
+        y = Inf,
+        label = case_when(
+          adj_pvalue_Treatment < 0.001 ~ "***",
+          adj_pvalue_Treatment < 0.01  ~ "**",
+          adj_pvalue_Treatment < 0.05  ~ "*",
+          TRUE ~ "ns"
+        )
+      ),
+      vjust = 1.5,
+      inherit.aes = FALSE
+    )
+  
+  ggsave(
+    file.path(
+      proteom_output_pwd,
+      paste0(
+        "Pathways/", folder,
+        "/Violin_Reactome_",
+        substr(make.names(reactome), 1, 15),
+        ".png"
+      )
+    ),
+    p,
+    width = 12,
+    height = 8,
+    dpi = 300
+  )
+}
+for (reactome in PARAMETERS$Proteom$Pathway_parents) {
+  print_violins(reactome_df = reactome_df,  reactome = reactome,  folder = "Parents")
+}
+# for (reactome in PARAMETERS$Proteom$Pathway_parents) {
+#   proteins_all <- reactome_prots_in_my_prots %>%
+# filter(Description %in% pathways_branch) %>%
+  # pull(Genes) %>%   unique()
+#   print_violins(reactome_df = reactome_df,  reactome = reactome, 
+#                 folder = "Parents_all",   protein_list = proteins_all  )
+# } # might not be nicely visible in violins bc to many prots
+for (reactome in PARAMETERS$Proteom$Children_of_parents) {
+  print_violins(  reactome_df = reactome_df,reactome = reactome,  folder = "Children" )
+  pathways_branch <- get_reactome_branch(reactome)
+  proteins_all <- reactome_prots_in_my_prots %>%
+    filter(Description %in% pathways_branch) %>%
+    pull(Genes) %>%   unique()
+  
+  print_violins(
+    reactome_df = reactome_df,
+    reactome = reactome,
+    folder = "Children_all",
+    protein_list = proteins_all
+  )
+}
+for (reactome in PARAMETERS$Proteom$Pathway_lowest) {
+  print_violins(reactome_df = reactome_df,  reactome = reactome,  folder = "Reduced")
+  
+  proteins_all <- reactome_prots_in_my_prots %>%
+    filter(Description %in% pathways_branch) %>%
+    pull(Genes) %>%unique()  
+  
+  print_violins(reactome_df = reactome_df,  reactome = reactome,
+    folder = "Reduced_all",  protein_list = proteins_all )
+}
 
-# Function to generate heatmap -----------------------------------------------
-make_reactome_heatmap <- function(pathways, filename, annotation_name = NULL) {
+# ALLlittle less shittyyyy  ------
+
+make_reactome_heatmap <- function(pathways, filename, annotation_name = NULL,
+                                  protein_list = NULL) {
   
-  pathway_proteins <- reactome_prots_in_my_prots %>%
-    filter(Description %in% pathways)
+  # ------------------------------------------------------------
+  # Protein list
+  # ------------------------------------------------------------
+  if (is.null(protein_list)) {
+    
+    pathways_branch <- unique(unlist(
+      lapply(pathways, get_reactome_branch)
+    ))
+    
+    pathway_proteins <- reactome_df %>%
+      filter(Description %in% pathways_branch) %>%
+      dplyr::select(Description, geneID) %>%
+      tidyr::separate_rows(geneID, sep = "/") %>%
+      filter(!is.na(geneID), geneID != "") %>%
+      distinct(Description, geneID)
+    
+    protein_genes <- unique(pathway_proteins$geneID)
+    
+  } else {
+    
+    protein_genes <- Proteins %>%
+      filter(Protein.Group %in% protein_list) %>%
+      pull(Genes) %>%
+      unique()
+  }
   
-  if (nrow(pathway_proteins) == 0) {
-    warning("Keine Proteine für ", pathways)
+  if (length(protein_genes) == 0) {
+    warning("Keine Proteine für ", paste(pathways, collapse = ", "))
     return(NULL)
   }
   
-  # Proteins = union of all selected pathways
-  protein_ids <- unique(pathway_proteins$identifier)
-  
+  # ------------------------------------------------------------
+  # Matrix
+  # ------------------------------------------------------------
   mat <- Proteins %>%
-    filter(Protein.Group %in% protein_ids) %>%
-    dplyr::select(Genes, starts_with("F_"), starts_with("M_")) %>%
-    tibble::column_to_rownames("Genes") %>%
+    filter(Genes %in% protein_genes) %>%
+    dplyr::select(Name, starts_with("F_"), starts_with("M_")) %>%
+    distinct(Name, .keep_all = TRUE) %>%
+    tibble::column_to_rownames("Name") %>%
     as.matrix()
   
   if (nrow(mat) < 2) {
-    warning(annotation_name, " hat weniger als 2 Proteine - übersprungen")
+    warning(
+      paste(pathways, collapse = ", "),
+      " hat weniger als 2 Proteine - übersprungen"
+    )
     return(NULL)
   }
   
-  # Row annotation --------------------------------------------------------------
+  # ------------------------------------------------------------
+  # Row annotation
+  # ------------------------------------------------------------
   if (!is.null(annotation_name)) {
     
-    annotation_row <- pathway_proteins %>%
-      filter(identifier %in% Proteins$Protein.Group) %>%
-      left_join(
-        Proteins %>% dplyr::select(Protein.Group, Genes),
-        by = c("identifier" = "Protein.Group")
-      ) %>%
-      filter(Genes %in% rownames(mat)) %>%
-      group_by(Genes) %>%
-      summarise(
-        !!annotation_name := paste(unique(Description), collapse = "; "),
-        .groups = "drop"
-      ) %>%
-      tibble::column_to_rownames("Genes")
+    if (is.null(protein_list)) {
+      
+      annotation_row <- pathway_proteins %>%
+        filter(geneID %in% rownames(mat)) %>%
+        group_by(geneID) %>%
+        summarise(
+          !!annotation_name := paste(
+            unique(Description),
+            collapse = "; "
+          ),
+          .groups = "drop"
+        ) %>%
+        dplyr::rename(Genes = geneID) %>%
+        tibble::column_to_rownames("Genes")
+      
+    } else {
+      
+      annotation_row <- pathway_proteins %>%
+        left_join(
+          Proteins %>%
+            dplyr::select(Protein.Group, Genes),
+          by = c("identifier" = "Protein.Group")
+        ) %>%
+        filter(Genes %in% rownames(mat)) %>%
+        group_by(Genes) %>%
+        summarise(
+          !!annotation_name := paste(
+            unique(Description),
+            collapse = "; "
+          ),
+          .groups = "drop"
+        ) %>%
+        tibble::column_to_rownames("Genes")
+    }
     
-    annotation_row <- annotation_row[rownames(mat), , drop = FALSE]
+    annotation_row <- annotation_row[
+      rownames(mat),
+      ,
+      drop = FALSE
+    ]
     
   } else {
     annotation_row <- NULL
   }
   
+  # ------------------------------------------------------------
   # Column annotation
+  # ------------------------------------------------------------
   annotation_col <- data.frame(
     Treatment = ifelse(
       grepl("_EtOH_", colnames(mat)), "Ctrl", "TAM"
@@ -470,10 +606,9 @@ make_reactome_heatmap <- function(pathways, filename, annotation_name = NULL) {
     levels = c("Ctrl", "TAM")
   )
   
-  # Keep annotation in same order as matrix
-  annotation_row <- annotation_row[rownames(mat), , drop = FALSE]
-  
+  # ------------------------------------------------------------
   # Heatmap
+  # ------------------------------------------------------------
   p <- pheatmap(
     mat,
     scale = "row",
@@ -490,37 +625,77 @@ make_reactome_heatmap <- function(pathways, filename, annotation_name = NULL) {
       Treatment = Treatment_colors[c("Ctrl", "TAM")]
     )
   )
+  
   n_rows <- nrow(mat)
   n_cols <- ncol(mat)
-  ggsave( file.path(proteom_output_pwd,  paste0("Plots/", filename)),
-          p,  width = 4 + 0.045 * n_rows,   height =1.5 + 0.08 * n_rows,   dpi= 300, bg = "white", limitsize = FALSE)
+  
+  ggsave(
+    file.path(
+      proteom_output_pwd,
+      paste0("Pathways/", filename)
+    ),
+    p,
+    width = 4 + 0.045 * n_rows,
+    height = 3 + 0.08 * n_rows,
+    dpi = 300,
+    bg = "white",
+    limitsize = FALSE
+  )
   
   print(p)
-
   
   invisible(p)
 }
-
-
-# Parent heatmap --------------------------------------------------------------
 for (parent in PARAMETERS$Proteom$Pathway_parents) {
+  filename_safe <- gsub("[^A-Za-z0-9]+", "_", parent)
+  filename_safe <-substr(filename_safe,1, 15)
+  # Significant proteins: Parent + alle Children
+  make_reactome_heatmap(parent,   paste0("Parents/08_Heatmap_Reactome_",filename_safe,".png") )
   
-  filename_safe <- gsub(  "[^A-Za-z0-9]+",  "_",  parent )
-  make_reactome_heatmap(  parent,  paste0("08_Heatmap_Reactome_Parent_",  filename_safe,  ".png") )
+  # All measured proteins: Parent + alle Children
+  pathways_branch <- get_reactome_branch(parent)
+  
+  proteins_all <- reactome_prots_in_my_prots %>%
+    filter(Description %in% pathways_branch) %>%
+    pull(identifier) %>%
+    unique()
+  
+  make_reactome_heatmap(parent,  paste0("Parents_all/08_Heatmap_Reactome_", filename_safe,".png"),
+    protein_list = proteins_all)
 }
 
-# Reduced pathway heatmap -----------------------------------------------------
-
-make_reactome_heatmap(PARAMETERS$Proteom$Pathway_lowest,"08_Heatmap_Reactome_Reduced.png","Pathway")
-
-
-# Individual child heatmaps ---------------------------------------------------
-
-for (child in PARAMETERS$Proteom$Children_of_parents) {
+for (parent in PARAMETERS$Proteom$Pathway_lowest) {
   
-  filename_safe <- gsub(  "[^A-Za-z0-9]+",  "_",  child )
+  filename_safe <- gsub("[^A-Za-z0-9]+", "_", parent)
+  filename_safe <-substr(filename_safe,1, 15)
   
-  make_reactome_heatmap(  child,  paste0("08_Heatmap_Reactome_Child_",  filename_safe,  ".png") )
+  # Significant proteins
+  make_reactome_heatmap(parent,  paste0("Reduced/08_Heatmap_Reactome_",
+                                        filename_safe,".png") )
+    # All measured proteins
+  proteins_all <- reactome_prots_in_my_prots %>%
+    filter(Description == parent) %>%
+    pull(identifier) %>%
+    unique()
+  make_reactome_heatmap(parent, paste0(  "Reduced_all/08_Heatmap_Reactome_",  filename_safe,  ".png"),
+                        protein_list = proteins_all )
+}
+
+for (parent in PARAMETERS$Proteom$Children_of_parents) {
+  
+  filename_safe <- gsub("[^A-Za-z0-9]+", "_", parent)
+  filename_safe <-substr(filename_safe,1, 15)
+  
+  # Significant proteins
+  make_reactome_heatmap(parent,  paste0("Children/08_Heatmap_Reactome_",
+                                        filename_safe,".png") )
+  # All measured proteins
+  proteins_all <- reactome_prots_in_my_prots %>%
+    filter(Description == parent) %>%
+    pull(identifier) %>%
+    unique()
+  make_reactome_heatmap(parent, paste0(  "Children_all/08_Heatmap_Reactome_",  filename_safe,  ".png"),
+                        protein_list = proteins_all )
 }
 write.csv2( reactome_proteins,file.path(proteom_output_pwd,"Data/Reactome_top10_all_pathway_proteins.csv"),  row.names = FALSE)
 write.csv2(reactome_prots_in_my_prots, file.path(proteom_output_pwd,"Data/Reactome_top10_proteins_in_myproteins.csv"),row.names = FALSE)
@@ -929,12 +1104,9 @@ for (i in seq_len(min(10, length(pathway_ids)))) {
     )
   }
 }
-### Notiz zum weitermachen: Sind alle paorents pathway significant? sinfd alle child pathways
-###  und alle reduced pathways significant?
-### wie filtere ich im stats skript um alle proteinen für alle möglichen geplotteten pathways zu finden? 
-### sollte ich dort evtl nicht das slicen machen? Ich sollte evtl auch verschieden csv speichern in denen
-###  genua aufgelistet ist, welcher parent pathways welchen p value hat und wer siene chidlren sind 
-###  genauso wie jedes childeren seinen parents und weteren childere haben sollte als übersicht
-###  
-###  Dann uach chekcne, dass die heatmaps für alles pathways proteien plotten.
-###  
+### Notiz zum weitermachen:
+### ich schaffe es noch nicht aus reactome_prots_in_my_prots wirklich alle protein zu plotten, wenn ihr pathway eigtl ein child von einem parent ist.
+### die funktionen schaffen es nicht, sich dann, wenn der parent name kommt, die prots des childs zu zeihen,
+### das würde ich geren fürs autoamtische plotten ahebn.
+### morgen daran weiter machen
+### 

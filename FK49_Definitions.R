@@ -1226,7 +1226,7 @@ PARAMETERS$Proteom <- list(
     "Fibrin formation" #,
   
     # Regulation of TLR by endogenous ligand
-    # keine signifikanten Kinder in deiner Liste
+    # keine signifikanten Kinder in Liste
   
     # # Post-translational protein modification
     # "Post-translational protein phosphorylation" does not have the parent in my data
@@ -1256,8 +1256,8 @@ Pathway_lowest = c(
     "Fibrin formation",
   
     #Regulation of TLR by endogenous ligand
-      "Toll-like Receptor Cascades",
-      "Innate Immune System",
+      "Regulation of TLR by endogenous ligand",
+    
   
     # Post-translational protein modification
     "Post-translational protein phosphorylation",
@@ -1265,3 +1265,55 @@ Pathway_lowest = c(
     "Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)"
   )
 )
+
+PARAMETERS$Proteom$hierarchy <- tibble::tribble(
+  ~Parent, ~Child,
+  
+  # Metabolism
+  "Metabolism", "Biological oxidations",
+  "Metabolism", "Metabolism of lipids",
+  "Metabolism", "Drug ADME",
+  
+  # Biological oxidations
+  "Biological oxidations", "Aflatoxin activation and detoxification",
+  "Biological oxidations", "Phase I - Functionalization of compounds",
+  "Biological oxidations", "Phase II - Conjugation of compounds",
+  
+  "Phase I - Functionalization of compounds", "Cytochrome P450 - arranged by substrate type",
+  
+  "Cytochrome P450 - arranged by substrate type", "Xenobiotics",
+  
+  "Phase II - Conjugation of compounds","Glutathione conjugation",
+  
+  # Metabolism of lipids
+  "Metabolism of lipids", "Metabolism of steroids",
+  "Metabolism of lipids", "Fatty acid metabolism",
+  "Metabolism of lipids", "Biosynthesis of specialized proresolving mediators (SPMs)",
+  
+  "Metabolism of steroids", "Bile acid and bile salt metabolism",
+  
+  "Bile acid and bile salt metabolism", "Recycling of bile acids and salts",
+  
+  "Biosynthesis of specialized proresolving mediators (SPMs)","Biosynthesis of DHA-derived SPMs",
+  
+  # Drug ADME
+  "Drug ADME", "Aspirin ADME",
+  "Drug ADME", "Prednisone ADME",
+  "Drug ADME", "Paracetamol ADME",
+  
+  # Platelet activation, signaling and aggregation
+  "Platelet activation, signaling and aggregation",  "Platelet degranulation",
+  
+  "Platelet degranulation",  "Response to elevated platelet cytosolic Ca2+",
+  
+  "Platelet activation, signaling and aggregation",  "GRB2:SOS provides linkage to MAPK signaling for Integrins",
+  
+  "Platelet activation, signaling and aggregation",  "p130Cas linkage to MAPK signaling for integrins",
+  
+  # Coagulation
+  "Coagulation pathway", "Fibrin formation",
+  
+  # TLR
+  "Regulation of TLR by endogenous ligand", "Innate Immune System",
+  "Regulation of TLR by endogenous ligand", "Toll-like Receptor Cascades",
+  )

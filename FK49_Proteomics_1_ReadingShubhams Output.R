@@ -17,6 +17,7 @@ source("FK49_Definitions.R")
 
 proteom_input_pwd <- PATHS$proteomics$input
 proteom_output_pwd <- PATHS$proteomics$output
+stats_pwd <- file.path(proteom_output_pwd, "Statistics")
 
 
 # Data ------------------------------------------------------------------------
@@ -35,21 +36,25 @@ Proteins <- read_excel( file.path(proteom_input_pwd, "FK49_TAM_EtOH_STATISTICAL_
     BH_corrected_pvalue_2 = BH_corrected_pvalue...35,
     Subset_2 = Subset...36,
     Regulation_2 = Regulation...37) %>%
-  dplyr::select( -Regulation_2, -logFC_2, -pValue_2, -BH_corrected_pvalue_2,
+    dplyr::select( -Regulation_2, -logFC_2, -pValue_2, -BH_corrected_pvalue_2,
     -Subset_2, -pValue, -adj_pvalue, -Direction, -Subset_1)
+colnames(Proteins) <- gsub("EtOH", "Ctrl", colnames(Proteins))
 
 meta <- read_excel( file.path(proteom_input_pwd, "FK49_FK46_BH_SampleList_Proteomics_Shubam.xlsx")) %>%
   filter( ExpID == "FK49",  Batch == "2") %>%
-  dplyr::select( Animal,  Sex, Treatment,PotentialShubhamNames )
+  dplyr::select( Animal,Sex, Treatment,PotentialShubhamNames )%>%
+  mutate( Treatment = gsub("EtOH", "Ctrl", Treatment),
+    PotentialShubhamNames = gsub("EtOH", "Ctrl", PotentialShubhamNames) )
 
 protein_matrix <- Proteins %>%
   dplyr::select(
     F_TAM_1, F_TAM_2,
-    M_EtOH_1, M_EtOH_2, M_EtOH_3, M_EtOH_4, M_EtOH_5,
+    M_Ctrl_1, M_Ctrl_2, M_Ctrl_3, M_Ctrl_4, M_Ctrl_5,
     F_TAM_3, F_TAM_4, F_TAM_5,
     M_TAM_1, M_TAM_2, M_TAM_3,
-    F_EtOH_1, F_EtOH_2, F_EtOH_3, F_EtOH_4,
-    M_TAM_4 ) %>%
+    F_Ctrl_1, F_Ctrl_2, F_Ctrl_3, F_Ctrl_4,
+    M_TAM_4) %>%
+  dplyr::mutate(across(everything(), as.numeric)) %>%
   as.matrix()
 
 rownames(protein_matrix) <- Proteins$Name
@@ -129,15 +134,15 @@ results_Male <- topTable( fit_contrasts,coef = "Treatment_male",number = Inf, ad
 
 # Save individual statistical results -----------------------------------------
 
-write.csv2( results_Treatment,file.path(proteom_output_pwd, "Statistics/results_Treatment_overall.csv"), row.names = FALSE)
-write.csv2( results_Interaction,file.path(proteom_output_pwd, "Statistics/results_Treatment_x_Sex.csv"), row.names = FALSE)
-write.csv2( results_Female, file.path(proteom_output_pwd, "Statistics/results_Treatment_female.csv"),row.names = FALSE)
-write.csv2( results_Male, file.path(proteom_output_pwd, "Statistics/results_Treatment_male.csv"),row.names = FALSE)
+write.csv2( results_Treatment,file.path(proteom_output_pwd, "Statistics/01_LIMMA_Treatment_overall.csv"), row.names = FALSE)
+write.csv2( results_Interaction,file.path(proteom_output_pwd, "Statistics/01_LIMMA_Treatment_x_Sex.csv"), row.names = FALSE)
+write.csv2( results_Female, file.path(proteom_output_pwd, "Statistics/01_LIMMA_Treatment_female.csv"),row.names = FALSE)
+write.csv2( results_Male, file.path(proteom_output_pwd, "Statistics/01_LIMMA__Treatment_male.csv"),row.names = FALSE)
 
 
 # Combined results ------------------------------------------------------------
 
-Proteins <- Proteins %>%
+Proteins_withstats <- Proteins %>%
   left_join(results_Treatment, by = "Name") %>%
   left_join(results_Interaction, by = "Name") %>%
   left_join(results_Female, by = "Name") %>%
@@ -158,11 +163,104 @@ Proteins <- Proteins %>%
 
 # Save combined results and matrix --------------------------------------------
 
-write.csv2( Proteins, file.path(proteom_output_pwd, "Statistics/FK49_Proteomics_Statistics.csv"),  row.names = FALSE)
-saveRDS(protein_matrix, file.path(proteom_output_pwd, "Data/FK49_Proteomics_protein_matrix.rds"))
-saveRDS(meta, file.path(proteom_output_pwd, "Data/FK49_Proteomics_metadata.rds") )
-saveRDS(Proteins, file.path(proteom_output_pwd, "Statistics/FK49_Proteomics_Statistics.rds"))
+write.csv2( Proteins_withstats, file.path(proteom_output_pwd, "Statistics/02_LIMMA_combined_stats.csv"),  row.names = FALSE)
+saveRDS(Proteins_withstats, file.path(proteom_output_pwd, "Statistics/02_LIMMA_combined_stats.rds"))
 
-### Calculate Correlation between Animals ------
+saveRDS(protein_matrix, file.path(proteom_output_pwd, "Data/01_protein_matrix.rds"))
+saveRDS(meta, file.path(proteom_output_pwd, "Data/01_metadata.rds") )
 
-### Caculate Correaltionbetween Proteins -----
+### Calculate Correlation between Animals ------------------------------------
+### Calculate and save correlations ------------------------------------------
+
+protein_matrix_centered <- t(
+  scale(t(protein_matrix), center = TRUE, scale = FALSE)
+)
+
+animal_cor_spearman_centered <- cor(
+  protein_matrix_centered,
+  method = "spearman",
+  use = "pairwise.complete.obs"
+)
+
+animal_cor_spearman <- cor(
+  protein_matrix,
+  method = "spearman",
+  use = "pairwise.complete.obs"
+)
+
+animal_cor_pearson <- cor(
+  protein_matrix,
+  method = "pearson",
+  use = "pairwise.complete.obs"
+)
+
+animal_cor_pearson_centered <- cor(
+  protein_matrix_centered,
+  method = "pearson",
+  use = "pairwise.complete.obs"
+)
+
+
+### Significant proteins -----------------------------------------------------
+
+Proteins_for_correlation <- Proteins_withstats %>%
+  filter(
+    adj_pvalue_Treatment < 0.05,
+    abs(logFC_Treatment) > 1
+  ) %>%
+  dplyr::select(
+    Name,
+    F_TAM_1, F_TAM_2, M_Ctrl_1, M_Ctrl_2,
+    M_Ctrl_3, M_Ctrl_4, M_Ctrl_5,
+    F_TAM_3, F_TAM_4, F_TAM_5,
+    M_TAM_1, M_TAM_2, M_TAM_3,
+    F_Ctrl_1, F_Ctrl_2, F_Ctrl_3,
+    F_Ctrl_4, M_TAM_4
+  )%>%as.data.frame()
+
+rownames(Proteins_for_correlation) <- Proteins_for_correlation$Name
+
+Proteins_for_correlation <- Proteins_for_correlation %>%
+  dplyr::select(-Name) %>%
+  as.matrix() %>%
+  t()
+
+proteins_for_correlation_centered <- t(scale(Proteins_for_correlation,center = TRUE,scale = FALSE ))
+
+protein_cor_spearman <- cor(Proteins_for_correlation,  method = "spearman",  use = "pairwise.complete.obs")
+
+animal_sig_cor_spearman <- cor(  t(Proteins_for_correlation),  method = "spearman",  use = "pairwise.complete.obs")
+
+animal_sig_cor_spearman_centered <- cor(  proteins_for_correlation_centered,  method = "spearman",  use = "pairwise.complete.obs")
+
+animal_sig_cor_pearson <- cor(  t(Proteins_for_correlation),  method = "pearson",  use = "pairwise.complete.obs")
+
+animal_sig_cor_pearson_centered <- cor( proteins_for_correlation_centered,method = "pearson", use = "pairwise.complete.obs")
+
+
+### Save correlation matrices -----------------------------------------------
+
+saveRDS(
+  list(
+    animal_cor_spearman = animal_cor_spearman,
+    animal_cor_spearman_centered = animal_cor_spearman_centered,
+    animal_cor_pearson = animal_cor_pearson,
+    animal_cor_pearson_centered = animal_cor_pearson_centered,
+    protein_cor_spearman = protein_cor_spearman,
+    animal_sig_cor_spearman = animal_sig_cor_spearman,
+    animal_sig_cor_spearman_centered = animal_sig_cor_spearman_centered,
+    animal_sig_cor_pearson = animal_sig_cor_pearson,
+    animal_sig_cor_pearson_centered = animal_sig_cor_pearson_centered
+  ),
+  file.path(proteom_output_pwd, "Statistics", "03_Correlation_matrices.rds")
+)
+
+write.csv2( animal_cor_spearman,file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_Spearman.csv"))
+write.csv2( animal_cor_spearman_centered, file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_Spearman_centered.csv"))
+write.csv2( animal_cor_pearson, file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_Pearson.csv"))
+write.csv2(  animal_cor_pearson_centered,file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_Pearson_centered.csv"))
+write.csv2( protein_cor_spearman, file.path(proteom_output_pwd, "Statistics", "03_Correlation_Protein_Spearman.csv"))
+write.csv2(  animal_sig_cor_spearman,  file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_SignificantProteins_Spearman.csv"))
+write.csv2( animal_sig_cor_spearman_centered, file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_SignificantProteins_Spearman_centered.csv"))
+write.csv2( animal_sig_cor_pearson,  file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_SignificantProteins_Pearson.csv"))
+write.csv2(  animal_sig_cor_pearson_centered,  file.path(proteom_output_pwd, "Statistics", "03_Correlation_Animal_SignificantProteins_Pearson_centered.csv"))

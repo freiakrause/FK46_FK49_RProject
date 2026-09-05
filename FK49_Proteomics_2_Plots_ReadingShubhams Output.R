@@ -3,7 +3,9 @@
 #
 # Plotting of FK49 proteomics statistical results.
 ###############################################################################
-
+##### Notizen zum weiter machen: Protein skripts aufräumen. 
+##### checken, obich bei anderen correaltions uach centeren muss. 
+##### checken, ob das wirklich klar geht. überhaupt alles checken
 rm(list = ls())
 gc()
 
@@ -22,11 +24,26 @@ proteom_output_pwd <- PATHS$proteomics$output
 
 # Load data -------------------------------------------------------------------
 
-Proteins <- read.csv2(file.path(proteom_output_pwd,  "Statistics/FK49_Proteomics_Statistics.csv" ))
+Proteins <- read.csv2(file.path(proteom_output_pwd,  "Statistics/02_LIMMA_combined_stats.csv" ))
 
-protein_matrix <- readRDS(file.path(proteom_output_pwd,"Data/FK49_Proteomics_protein_matrix.rds" ))
-meta <- readRDS(file.path(proteom_output_pwd,"Data/FK49_Proteomics_metadata.rds"))
+protein_matrix <- readRDS(file.path(proteom_output_pwd,"Data/01_protein_matrix.rds" ))
+meta <- readRDS(file.path(proteom_output_pwd,"Data/01_metadata.rds"))
 # load calculateion of Correaltion animals
+correlations <- readRDS(file.path(proteom_output_pwd, "Statistics", "Correlation_matrices.rds")
+)
+
+animal_cor_spearman <- correlations$animal_cor_spearman
+animal_cor_spearman_centered <- correlations$animal_cor_spearman_centered
+animal_cor_pearson <- correlations$animal_cor_pearson
+animal_cor_pearson_centered <- correlations$animal_cor_pearson_centered
+
+protein_cor_spearman <- correlations$protein_cor_spearman
+
+animal_sig_cor_spearman <- correlations$animal_sig_cor_spearman
+animal_sig_cor_spearman_centered <- correlations$animal_sig_cor_spearman_centered
+animal_sig_cor_pearson <- correlations$animal_sig_cor_pearson
+animal_sig_cor_pearson_centered <- correlations$animal_sig_cor_pearson_centered
+
 # load calculattion of Crorealtion proteins
 # Volcano ---------------------------------------------------------------------
 p_volcano <- ggplot(Proteins, aes(x = logFC_Treatment,y = -log10(pValue_Treatment))) +
@@ -55,7 +72,7 @@ ggsave( plot = p_volcano, filename = "/Plots/01_Prots_a_volcano.png",
 values_for_heatmap_up <- as.data.frame(
   Proteins %>%
     filter( adj_pvalue_Treatment < 0.05 & logFC_Treatment > 1 ) %>%
-    dplyr::select( Name, Genes,contains(c("EtOH", "TAM"))))
+    dplyr::select( Name, Genes,contains(c("Ctrl", "TAM"))))
 
 rownames(values_for_heatmap_up) <- values_for_heatmap_up$Name
 values_for_heatmap_up$Name <- NULL
@@ -64,7 +81,7 @@ ann_col <- data.frame(Sample = colnames(values_for_heatmap_up %>% dplyr::select(
   separate(  Sample,into = c("Sex", "Treatment", "Replicate"),sep = "_" ) %>%
   dplyr::select(-Replicate) %>%
   mutate( Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male" ),
-    Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
+    Treatment = case_when(Treatment == "Ctrl" ~ "Ctrl", TRUE ~ Treatment),
     Sex = factor( Sex,levels = c("female", "male")),Treatment = factor(Treatment,levels = c("Ctrl", "TAM")) )
 
 values_for_heatmap_up$Genes <- NULL
@@ -89,7 +106,7 @@ ggsave( ph, file = "/Plots/02_Heat_sig_up.png",  path = proteom_output_pwd,
 ## Heatmap significant down ---------------------------------------------------
 values_for_heatmap_down <- as.data.frame(
   Proteins %>%filter( adj_pvalue_Treatment < 0.05 & logFC_Treatment < -1) %>%
-    dplyr::select( Name, Genes,contains(c("EtOH", "TAM"))))
+    dplyr::select( Name, Genes,contains(c("Ctrl", "TAM"))))
 
 rownames(values_for_heatmap_down) <- values_for_heatmap_down$Name
 values_for_heatmap_down$Name <- NULL
@@ -98,7 +115,7 @@ ann_col <- data.frame(Sample = colnames(values_for_heatmap_down %>% dplyr::selec
   separate( Sample, into = c("Sex", "Treatment", "Replicate"),sep = "_") %>%
   dplyr::select(-Replicate) %>%
   mutate(Sex = case_when( Sex == "F" ~ "female",Sex == "M" ~ "male"),
-    Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
+    Treatment = case_when(Treatment == "Ctrl" ~ "Ctrl", TRUE ~ Treatment),
     Sex = factor( Sex,levels = c("female", "male")),
     Treatment = factor(Treatment,levels = c("Ctrl", "TAM"))
   )
@@ -141,7 +158,7 @@ values_for_heatmap_top100 <- as.data.frame(
         filter(adj_pvalue_Treatment < 0.05) %>%
         arrange(desc(logFC_Treatment)) %>%
         slice_head(n = 50)) %>%
-    dplyr::select( Name,  Genes, contains(c("EtOH", "TAM"))))
+    dplyr::select( Name,  Genes, contains(c("Ctrl", "TAM"))))
 
 rownames(values_for_heatmap_top100) <-values_for_heatmap_top100$Name
 
@@ -151,7 +168,7 @@ ann_col <- data.frame(Sample = colnames(values_for_heatmap_top100 %>% dplyr::sel
   separate(  Sample,into = c("Sex", "Treatment", "Replicate"),sep = "_" ) %>%
   dplyr::select(-Replicate) %>%
   mutate( Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male" ),
-    Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
+    Treatment = case_when(Treatment == "Ctrl" ~ "Ctrl", TRUE ~ Treatment),
     Sex = factor(Sex,levels = c("female", "male") ),
     Treatment = factor( Treatment,levels = c("Ctrl", "TAM")))
 
@@ -184,7 +201,7 @@ pca_df <- as.data.frame(pca$x) %>%
   rownames_to_column("Sample") %>%
   separate( Sample, into = c("Sex", "Treatment", "Replicate"),sep = "_" ) %>%
   mutate(Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male"),
-    Treatment = case_when(Treatment == "EtOH" ~ "Ctrl",TRUE ~ Treatment),
+    Treatment = case_when(Treatment == "Ctrl" ~ "Ctrl",TRUE ~ Treatment),
     Sex = factor(Sex,levels = c("female", "male")),
     Treatment = factor(Treatment,levels = c("Ctrl", "TAM")))
 
@@ -219,7 +236,7 @@ pca_sig_df <- as.data.frame(pca_sig$x) %>%
   rownames_to_column("Sample") %>%
   separate(  Sample,into = c("Sex", "Treatment", "Replicate"),sep = "_" ) %>%
   mutate( Sex = case_when(Sex == "F" ~ "female",Sex == "M" ~ "male" ),
-    Treatment = case_when(Treatment == "EtOH" ~ "Ctrl", TRUE ~ Treatment),
+    Treatment = case_when(Treatment == "Ctrl" ~ "Ctrl", TRUE ~ Treatment),
     Sex = factor(Sex,levels = c("female", "male")),
     Treatment = factor(Treatment,levels = c("Ctrl", "TAM"))
   )
@@ -243,15 +260,136 @@ ggsave( pca_sig_plot, file = "/Plots/03_PCA_Proteins_sig.png", path = proteom_ou
   width = 6.5,height = 6, dpi = 300,bg = "white", limitsize = FALSE)
 # Correaltions PLots HEatmaps -----
 ## Correaltion between ANimals -----
-# ggsave(Cor_Animals_spearman, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Animals_Spearman.png, width = 8, height = 8, dpi = 300, bg= "white)
-# ggsave(Cor_Animals_pearson, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Animals_Pearson.png, width = 8, height = 8, dpi = 300, bg= "white)
+## ### Correlation heatmap function ---------------------------------------------
 
+save_cor_heatmap <- function(cor_matrix, filename,
+                             annotation_col = NULL,
+                             annotation_colors = NULL,
+                             show_names = TRUE) {
+  
+  # Heatmap-Größe automatisch an Anzahl der Zeilen/Spalten anpassen
+  n <- nrow(cor_matrix)
+  
+  if (n <= 10) {
+    cell_size <- 0.55
+  } else if (n <= 30) {
+    cell_size <- 0.35
+  } else if (n <= 60) {
+    cell_size <- 0.22
+  } else {
+    cell_size <- 0.15
+  }
+  
+  width  <- max(6, n * cell_size + 3)
+  height <- max(6, n * cell_size + 3)
+  
+  p <-  pheatmap(
+    cor_matrix,
+    clustering_distance_rows = "correlation",
+    clustering_distance_cols = "correlation",
+    show_rownames = show_names,
+    show_colnames = show_names,
+    annotation_col = annotation_col,
+    annotation_row = annotation_col,
+    annotation_colors = annotation_colors,
+    display_numbers = FALSE,
+    number_format = "%.2f",
+    fontsize_number = 7,
+    border_color = "black",
+    breaks = seq(-1, 1, length.out = 101),
+    silent=TRUE)
+  
+  ggsave(filename = file.path( proteom_output_pwd, "Plots",  filename),  plot = p$gtable,
+         width = width,  height = height,  units = "in",   dpi = 300 ,bg="white" )
+}
+
+annotation_col=data.frame(Sex=meta$Sex,Treatment=meta$Treatment)
+anno_col_color=list(Sex=Sex_colors,Treatment=Treatment_colors[c("Ctrl","TAM")])
+rownames(annotation_col) <- colnames(protein_matrix)
+### Annotation ---------------------------------------------------------------
+### Heatmaps: all proteins ---------------------------------------------------
+
+save_cor_heatmap(
+  animal_cor_spearman_centered,
+  "04_Correlation_Animal_Spearman_centered.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
+
+save_cor_heatmap(
+  animal_cor_spearman,
+  "04_Correlation_Animal_Spearman.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
+
+save_cor_heatmap(
+  animal_cor_pearson,
+  "04_Correlation_Animal_Pearson.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
+
+save_cor_heatmap(
+  animal_cor_pearson_centered,
+  "04_Correlation_Animal_Pearson_centered.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
+
+
+### Heatmap: protein-protein -------------------------------------------------
+
+save_cor_heatmap(
+  protein_cor_spearman,
+  "04_Correlation_Protein_Spearman.png",
+  show_names = TRUE
+)
+
+
+### Heatmaps: significant proteins ------------------------------------------
+
+save_cor_heatmap(
+  animal_sig_cor_spearman,
+  "04_Correlation_Animal_SignificantProteins_Spearman.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
+
+save_cor_heatmap(
+  animal_sig_cor_spearman_centered,
+  "04_Correlation_Animal_SignificantProteins_Spearman_centered.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
+
+save_cor_heatmap(
+  animal_sig_cor_pearson,
+  "04_Correlation_Animal_SignificantProteins_Pearson.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
+
+save_cor_heatmap(
+  animal_sig_cor_pearson_centered,
+  "04_Correlation_Animal_SignificantProteins_Pearson_centered.png",
+  annotation_col = annotation_col,
+  annotation_colors = anno_col_color,
+  show_names = FALSE
+)
 # Correaltion between proteins -----
 # ggsave(Cor_Proteins_spearman, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Proteins_Spearman.png, width = 8, height = 8, dpi = 300, bg= "white)
 # ggsave(Cor_Proteins_pearson, file= file.path(proteom_output_pwd,"Plots/04_Correlation_Proteins_Pearson.png, width = 8, height = 8, dpi = 300, bg= "white)
 
 # VennDagramm -----
-# Venn Proteins Overall in TAM EtOH
+# Venn Proteins Overall in TAM Ctrl
 # not possible i only have filtered proteins that seem to be present in both sets
 # Exploratory heatmaps --------------------------------------------------------
 

@@ -1,4 +1,5 @@
-
+rm(list=ls())
+gc()
 library(dplyr)
 library(httr)
 library(jsonlite)
@@ -6,12 +7,19 @@ library(org.Mm.eg.db)
 library(pheatmap)
 library(pathview)
 library(AnnotationDbi)
+source("FK49_Definitions.R")
 # Connect Pathway Diagramm with expression data -----
 # #### Notizen zum weitermachen
 # Kann ich Reactome files für alle 28 enriched pathway herunterladen? im moment habe ich nur einen anteil
 # generall funktion checkn un säubern
 ##Prepare Exression data for upload -----
-reactome_all <- read.csv2(file.path(stats_pwd, "Reactome_ALL_significant.csv"))
+proteom_output_pwd <- PATHS$proteomics$output
+
+stats_pwd <- file.path(proteom_output_pwd, "Statistics")
+
+Proteins_and_LIMMA <- read.csv2(file.path(stats_pwd, "02_LIMMA_combined_stats.csv"))
+reactome_prots_in_my_prots <- read.csv2(file.path(proteom_output_pwd,"Data/04_React_PWD_prots_in_myprots.csv"))
+Reactome_Pathways <- read.csv2(file.path(stats_pwd, "04_ORA_Reactome_ALL_significant.csv"))
 
 abundance_data_metabos <- read.csv2(file.path(PATHS$metabolomics$output,"CDHFD/FK49_metabolome_statistics.csv"))
 KEGG_ID_targeted <- read.csv2(file.path(PATHS$metabolomics$rawdata,"KEGG_MetaboAnalyst.csv"))%>%mutate(ChEBI = NA,METLIN = NA)
@@ -27,7 +35,7 @@ ID_ALL <- dplyr::bind_rows(
 abundance_data_metabos <- abundance_data_metabos %>%
   dplyr::left_join(   ID_ALL,    by = c("Metabolite" = "Query")  )
 
-expr_data_proteins <- Proteins %>%
+expr_data_proteins <- Proteins_and_LIMMA %>%
   dplyr::filter(Protein.Group %in% reactome_prots_in_my_prots$identifier) %>%
   dplyr::select(ID = Protein.Group, logFC)
 
@@ -37,9 +45,9 @@ expr_data_compounds <- abundance_data_metabos %>%
 
 expr_data <- dplyr::bind_rows(expr_data_proteins, expr_data_compounds)
 
-saveRDS(expr_data_proteins, file.path(proteom_output_pwd, "Data/Expr_Data_Proteins.rds"))
-saveRDS(expr_data_compounds, file.path(proteom_output_pwd, "Data/Expr_Data_Compounds.rds"))
-saveRDS(expr_data,           file.path(proteom_output_pwd, "Data/Expr_Data_ALL.rds"))# Header mit # davor, wie von Reactome gefordert
+saveRDS(expr_data_proteins, file.path(proteom_output_pwd, "Data/05_Expr_Data_Proteins_Upload.rds"))
+saveRDS(expr_data_compounds, file.path(proteom_output_pwd, "Data/05_Expr_Data_Compounds_Upload.rds"))
+saveRDS(expr_data,           file.path(proteom_output_pwd, "Data/05_Expr_Data_ALL_Upload.rds"))# Header mit # davor, wie von Reactome gefordert
 header_line <- paste0("#", paste(colnames(expr_data), collapse = "\t"))
 data_lines <- apply(expr_data, 1, function(row) {paste(trimws(row), collapse = "\t")})
 tsv_payload <- paste(c(header_line, data_lines), collapse = "\n")
@@ -70,7 +78,7 @@ print(paste(length(not_found), "IDs konnten nicht gemappt werden"))
 download_reactome_diagram_with_overlay <- function(pathway_id, description, token, out_dir, 
                                                    ext = "png", quality = 10,
                                                    diagram_profile = "Modern",
-                                                   analysis_profile = "Strosobar",
+                                                   analysis_profile = "Copper Plus",
                                                    exp_column = NULL, ehld = FALSE,
                                                    flg_ids = NULL, flg_interactors = FALSE,coverage = FALSE) {
   
@@ -100,25 +108,43 @@ download_reactome_diagram_with_overlay <- function(pathway_id, description, toke
   
   desc_safe <- gsub("[^A-Za-z0-9]+", "_", description)
   desc_safe <- gsub("_+$", "", desc_safe)
-  
-  out_file <- file.path(out_dir, paste0(desc_safe, "_", analysis_profile, ".", ext))
+  desc_safe <- stringr::str_trunc(desc_safe, 15)
+  out_file <- file.path(out_dir, paste0("09_",desc_safe, "_", analysis_profile, ".", ext))
   writeBin(httr::content(res, "raw"), out_file)
   message(paste("Gespeichert:", out_file))
 }
 # Pathway-ID -> Description Mapping (aus top_reactome)
-pathway_lookup <- reactome_df %>%
-  dplyr::select(ID, Description) %>%
-  dplyr::distinct()
-
-# Schleife über alle Top-Pathways
-for (pw in pathway_ids) {
-  desc <- pathway_lookup$Description[pathway_lookup$ID == pw]
+# pathway_lookup <- Reactome_Pathways %>%
+#   dplyr::select(ID, Description) %>%
+#   dplyr::distinct()
+for (pw in PARAMETERS$Proteom$Pathway_parents) {
+  desc <- Reactome_Pathways$Description[Reactome_Pathways$Description == pw]
+  pathway_id <- Reactome_Pathways$ID[Reactome_Pathways$Description == pw]
   download_reactome_diagram_with_overlay(
-    pathway_id = pw, description = desc,
-    token = token, out_dir = file.path(proteom_output_pwd, "Pathways"),
+    pathway_id = pathway_id, description = desc,
+    token = token, out_dir = file.path(proteom_output_pwd, "Pathways/Parents"),
     flg_ids = expr_data$ID  # deine kompletten Proteine+Metabolite IDs
   )
 }
+for (pw in PARAMETERS$Proteom$Children_of_parents) {
+  desc <- Reactome_Pathways$Description[Reactome_Pathways$Description == pw]
+  pathway_id <- Reactome_Pathways$ID[Reactome_Pathways$Description == pw]
+  download_reactome_diagram_with_overlay(
+    pathway_id = pathway_id, description = desc,
+    token = token, out_dir = file.path(proteom_output_pwd, "Pathways/Children"),
+    flg_ids = expr_data$ID  # deine kompletten Proteine+Metabolite IDs
+  )
+}
+for (pw in PARAMETERS$Proteom$Pathway_lowest) {
+  desc <- Reactome_Pathways$Description[Reactome_Pathways$Description == pw]
+  pathway_id <- Reactome_Pathways$ID[Reactome_Pathways$Description == pw]  
+  download_reactome_diagram_with_overlay(
+    pathway_id = pathway_id, description = desc,
+    token = token, out_dir = file.path(proteom_output_pwd, "Pathways/Reduced"),
+    flg_ids = expr_data$ID  # deine kompletten Proteine+Metabolite IDs
+  )
+}
+
 # 
 # # #######
 # library(ReactomeContentService4R)

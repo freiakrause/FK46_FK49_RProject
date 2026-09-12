@@ -1,6 +1,7 @@
 rm(list=ls())
 gc()
 library(tidyverse)
+library(openxlsx)
 library(rstatix)
 library(lmerTest)
 library(emmeans)
@@ -15,18 +16,17 @@ load(file.path(PATHS$general_data[[paste0(ExpId,"_output")]],"01_RawData",paste0
 # Function for Weight Curves ----------------------------------------------
 #Function assumes if you say BATCH== "ALL that you have batch 1 and 2. 
 #If this is not right, change it in function to either take all numerical batches or to the numbers you have
-#
-do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
-                            batch = "ALL", sex = "both", N, path_images,savestats = "NO"){
+
+do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",batch = "ALL", sex = "both", N, path_images,savestats = "NO"){
   
   value_label_final <- if (is.null(value_label)) deparse(substitute(value)) else value_label #label for plotting and saving
   file_base <- paste0(ExpId, "_", value_label_final, "_Batch", batch, "_", sex, "_n", N)
   
   # filter for specified sex -----
   filtered <- inputdata %>%
-    select(any_of(c("Sex", "BATCH", "Treatment", "DOW", "wks_diet", "Animal", "Block", "days_diet", "Cage")), {{value}})%>%
-    filter(!is.na({{value}})) %>%
-    filter(case_when(
+    dplyr::select(any_of(c("Sex", "BATCH", "Treatment", "DOW", "wks_diet", "Animal", "Block", "days_diet", "Cage")), {{value}})%>%
+    dplyr::filter(!is.na({{value}})) %>%
+    dplyr::filter(case_when(
       sex == "female" ~ Sex == "female",
       sex == "male" ~ Sex == "male",
       sex == "both" ~ TRUE))
@@ -34,20 +34,20 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
   # BATCH filtering -----
   if (batch == "ALL") {
     common_timepoints <- filtered %>%       # Find common time points across both batches
-      filter(BATCH %in% c(1, 2)) %>%
+      dplyr::filter(BATCH %in% c(1, 2)) %>%
       group_by(wks_diet, BATCH) %>%
       summarise(n = n(), .groups = "drop") %>%
       group_by(wks_diet) %>%
       summarise(n_batches = n_distinct(BATCH)) %>%
-      filter(n_batches == 2) %>%
+     # dplyr::filter(n_batches ==2) %>%
       pull(wks_diet)
     
     filtered <- filtered %>%
-      filter(BATCH %in% c(1, 2)) %>%
-      filter(wks_diet %in% common_timepoints)
+      dplyr::filter(BATCH %in% c(1, 2)) %>%
+      dplyr::filter(wks_diet %in% common_timepoints)
   } 
   else {
-    filtered <- filtered %>% filter(BATCH == batch)
+    filtered <- filtered %>%  dplyr::filter(BATCH == batch)
   }
   # Filter out food days (FK49 only — FK46 has no food/water daily weighing) -----
    #they should not appear in this overall plot. 
@@ -55,7 +55,7 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
   if ("Block" %in% names(filtered)) {
     filtered <- filtered %>%
     group_by(Animal, Block) %>%
-    filter((Block %in% c("0") & days_diet == -7) | # In block 0 and 1 all batches were weight on the Monday,
+      dplyr::filter((Block %in% c("0") & days_diet == -7) | # In block 0 and 1 all batches were weight on the Monday,
            (Block %in% c("1") & days_diet == 0)|    #DOW_in_Block 1 so thats the day i want to represent the week
            (!Block %in% c("0", "1")  & days_diet == as.numeric(as.character(Block))*7-4) )%>%
     ungroup()
@@ -64,7 +64,7 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
   Mean_SD_data <- filtered %>%
     group_by(Treatment, wks_diet) %>%
     summarise(weight = mean({{value}}, na.rm = TRUE),n = n(), sd = sd({{value}}, na.rm = TRUE)) %>%
-    filter(n > N)
+    dplyr::filter(n > N)
   
   ## Statistical Tests of Weight Curves --------------------------------------------------------
   # ChatGPT did and helped a lot here. So i don't know everything exactly.
@@ -82,12 +82,18 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
    # 
 
   model_data <- filtered %>%
-    mutate( Animal = factor(Animal),  
+    dplyr::mutate( Animal = factor(Animal),  
             Treatment = factor(Treatment),  
-            wks_diet = as.numeric(as.character(wks_diet)) )  #wks_diet needs to be numeric for random slope
+            wks_diet = as.numeric(as.character(wks_diet)),   #wks_diet needs to be numeric for random slope
+            Sex = factor(Sex))
   #fit linear mixed-effects model 
+  if( sex == "both"){ 
   formula<-as.formula(paste(deparse(substitute(value)),
-                            "~ Treatment * wks_diet + (1 + wks_diet | Animal)")) 
+  "~ Treatment * wks_diet*Sex + (1 + wks_diet | Animal)")) }else {
+  
+  formula<-as.formula(paste(deparse(substitute(value)),
+                            "~ Treatment * wks_diet + (1 + wks_diet | Animal)")) }
+  
   #vfixed effects within interaction of treatment and time
   # (1+wks_diet|Animal) random effects
   #1 is random interept - each animal kann have individual basleine value at first measuremtn
@@ -96,11 +102,36 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
                            
   model <- lmer(formula, REML = TRUE, data = model_data)
   anova_table<-anova(model, type = 3)
-  anova_label <- paste0("ANOVA over linear mixed-effects model\n",
-                        "Treatment: F = ", round(anova_table$F[1], 2), ", p = ", signif(anova_table$`Pr(>F)`[1], 3), "\n",
-                        "Time: F = ", round(anova_table$F[2], 2), ", p < ", format.pval(anova_table$`Pr(>F)`[2], digits = 1), "\n",
-                        "Interaction: F = ", round(anova_table$F[3], 2), ", p = ", signif(anova_table$`Pr(>F)`[3], 3))
+  get_anova_result <- function(term) {
+    if (term %in% rownames(anova_table)) {
+      paste0( term,   ": F = ", round(anova_table[term, "F value"], 2),   ", p = ", format.pval(anova_table[term, "Pr(>F)"], digits = 3)  )
+    } else {NULL}
+  }
   
+  if (sex == "both") {
+    
+    anova_label <- paste(
+      "ANOVA over linear mixed-effects model",
+      get_anova_result("Treatment"),
+      get_anova_result("wks_diet"),
+      get_anova_result("Sex"),
+      get_anova_result("Treatment:wks_diet"),
+      get_anova_result("Treatment:Sex"),
+      get_anova_result("wks_diet:Sex"),
+      get_anova_result("Treatment:wks_diet:Sex"),
+      sep = "\n"
+    )
+    
+  } else {
+    
+    anova_label <- paste(
+      "ANOVA over linear mixed-effects model",
+      get_anova_result("Treatment"),
+      get_anova_result("wks_diet"),
+      get_anova_result("Treatment:wks_diet"),
+      sep = "\n"
+    )
+  }
   # To test at each specific timepoint and not the overall dataset -----
   
   # estimated marginal means for both Treatment and wks_diet
@@ -113,43 +144,58 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
   
   pwc_df <- as.data.frame(pwc)
   pwc_df_rounded <- pwc_df %>%
-    mutate(rounded_p_value = ifelse(is.na(p.value), "NA", round(p.value, 3))) %>%
-    mutate(wks_diet = as.character(wks_diet)) %>%
-    mutate(wks_diet = as.numeric(wks_diet)) %>%
-    mutate(significance = case_when(
+    dplyr::mutate(rounded_p_value = ifelse(is.na(p.value), "NA", round(p.value, 3))) %>%
+    dplyr::mutate(wks_diet = as.character(wks_diet)) %>%
+    dplyr::mutate(wks_diet = as.numeric(wks_diet)) %>%
+    dplyr::mutate(significance = case_when(
       is.na(p.value) ~ "NA",                     # For NA p-values
       p.value < 0.001 ~ "***",                   # p < 0.001 is highly significant
       p.value >= 0.001 & p.value < 0.01 ~ "**",  # 0.001 ≤ p < 0.01 is significant
       p.value >= 0.01 & p.value < 0.05 ~ "*",    # 0.01 ≤ p < 0.05 is moderately significant
       p.value >= 0.05 ~ "NS",                    # p ≥ 0.05 is not significant
       TRUE ~ "NA"   ))  %>%                      # Default case
-    select(wks_diet, rounded_p_value, significance)
+    dplyr::select(wks_diet, rounded_p_value, significance)
   
 
   # Variables for Plot Setup
   mean_value <- mean(Mean_SD_data$weight, na.rm = TRUE)
   sd_value <-  sd(Mean_SD_data$weight, na.rm = TRUE)
-  min_value <- round(mean_value - 4 * sd_value)
-  max_value <- round(mean_value+5*sd_value)
+  min_value <- round(mean_value - 3 * sd_value)
+  max_value <- round(mean_value+4*sd_value)
   
   range_value <- max_value - min_value
   step_size <- ceiling((range_value * 0.2) / 5) * 5
   breaks_value <- seq(min_value, max_value, by = step_size)
   breaks_value <- round(breaks_value / 5) * 5
-  
   min_x <- round(min(Mean_SD_data$wks_diet, na.rm = TRUE))
-  max_x <- round(max(Mean_SD_data$wks_diet, na.rm = TRUE) + 1)
+  max_x <- round(max(Mean_SD_data$wks_diet, na.rm = TRUE) )
   x_break_step <- if (max_x > 20) 4 else 1
-  breaks_x <- seq(-1, max_x, by = x_break_step)
-  
+  # Große Ticks
+  breaks_x <- seq(0, max_x, by = x_break_step)
+  # 41 als Tick behalten, aber nicht labeln
+  breaks_x <- sort(unique(c(breaks_x, max_x)))
+  # Labels nur für die regulären 4er-Schritte
+  labels_x <- ifelse(breaks_x %% x_break_step == 0, breaks_x, "")
+  x_break_step <- if (max_x > 20) 4 else 1
+  # breaks_x <- seq(0, max_x, by = x_break_step)
+  # breaks_x <- sort(unique(c(breaks_x, max_x)))
   unit_label <- unit
   
   max_weights <- Mean_SD_data %>%
     group_by(wks_diet) %>%
     summarise(max_weight = max(weight, na.rm = TRUE)) %>%
     ungroup() %>%
-    mutate(y_position = max_weight + max_weight * 0.1)
+    dplyr::mutate(y_position = max_weight + max_weight * 0.15)
   
+  n_annotations <- Mean_SD_data %>%
+    group_by(wks_diet) %>%
+    mutate( mean_diff = abs(weight - mean(weight)),  close = diff(range(weight)) < 0.07 * range_value) %>%
+    ungroup() %>%
+    group_by(wks_diet) %>%
+    mutate( y_position = ifelse(close,max(weight + ifelse(is.na(sd), 0.02 * range_value, 0.5 * sd),  na.rm = TRUE) + 0.006 * range_value,
+        weight + ifelse(is.na(sd), 0.02 * range_value, 0.5 * sd)),
+        x_position = ifelse(  close & Treatment == "Ctrl",wks_diet - 0.29, ifelse( close & Treatment == "TAM", wks_diet + 0.29, wks_diet))) %>%
+    ungroup()    
   # Join y_position back into pwc_df_rounded
   pwc_df_annotated <- pwc_df_rounded %>%
     left_join(max_weights, by = "wks_diet")
@@ -159,12 +205,18 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
     geom_ribbon(aes(y = weight, ymin = weight - sd, ymax = weight + sd), alpha = 0.1, linetype = 0) +
     geom_point(size = 3) +
     geom_line(linewidth = 1) +
-    geom_text(aes(label = n), hjust = 0, vjust = -1, size = 3, show.legend = FALSE) +
+    #geom_text(aes(label = n), hjust = 0, vjust = -1, size = 3, show.legend = FALSE) +
     scale_color_manual(values = c(Treatment_colors[c("Ctrl","TAM")],"black","pink")) +
     scale_fill_manual(values = c(Treatment_colors[c("Ctrl","TAM")],"black","pink")) +
-    scale_x_continuous(name = "Time on CD-HFD [wks]", limits = c(min_x, max_x),
-                       breaks = breaks_x, minor_breaks = seq(min_x, max_x, by = x_break_step / 2)) +
-    scale_y_continuous(name = sprintf("%s [%s]", deparse(substitute(value)), unit_label),
+    scale_x_continuous(
+      name = "Time on CD-HFD [wks]",
+      limits = c(min_x-1, max_x+1),
+      breaks = breaks_x,
+      labels = labels_x,
+      minor_breaks = seq(min_x, max_x+1, by = 1),
+      expand = expansion(mult = c(0.01, 0.01))
+    )+
+    scale_y_continuous(name = sprintf("%s [%s]", substitute(value_label_final), unit_label),
                        limits = c(min_value, max_value), breaks = breaks_value) +
     xlab("Time on CD-HFD [wks]") +
     ylab(sprintf("%s [%s]", deparse(substitute(value)), unit_label)) +
@@ -177,33 +229,45 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
           panel.grid.minor = element_blank(),
           panel.border = element_blank(),
           panel.background = element_blank(),
-          axis.ticks.length = unit(4, "pt"))+
-    annotate("text", 
-             x = pwc_df_annotated$wks_diet, 
+          axis.ticks.length = unit(4, "pt"),
+          axis.title.x = element_text(size = 12, face = "bold", colour = "black"),
+            axis.title.y = element_text(size = 12, face = "bold", colour = "black"),
+            axis.text.x  = element_text(size = 10, face = "plain", colour = "black"),
+            axis.text.y  = element_text(size = 10, face = "plain", colour = "black"),
+            plot.title   = element_text(size = 12, face = "bold", colour = "black") ,
+          legend.position = "top")+
+    annotate("text",
+             x = pwc_df_annotated$wks_diet,
              y = pwc_df_annotated$y_position,
-             label = pwc_df_annotated$significance, 
+             label = pwc_df_annotated$significance,
              size = 2.5, color = "black", fontface = "italic")+
-    annotate("text", x = min_x + 2, y = min_value + range_value * 0.05,  # 5% above the bottom
-             label = anova_label, size = 2,   hjust = 0,  color = "black", 
-             fontface = "italic")+
-    annotate("text", x = min_x + 6, y = min_value + range_value * 0.05,  # 5% above the bottom
-             label = posthoc_label,size = 2, hjust = 0,  color = "black",      fontface = "italic")
-  
+    geom_text(data = n_annotations,   aes(x = x_position, y = y_position,   label = n  , color = Treatment),
+      hjust = 0.5,  vjust = 0,  size = 2.5,  show.legend = FALSE )#+
+    # annotate("text", x = min_x + 2, y = min_value + range_value * 0.05,  # 5% above the bottom
+    #          label = anova_label, size = 2,   hjust = 0,  color = "black", 
+    #          fontface = "italic")+
+    # annotate("text", x = min_x + 10, y = min_value + range_value * 0.05,  # 5% above the bottom
+    #          label = posthoc_label,size = 2, hjust = 0,  color = "black",      fontface = "italic")
+    # 
   
   # ---  Saving Plot --- 
-  ggsave(filename = paste0(file_base, ".png"), plot = plot,  path = path_images, width = 9, height = 6,dpi = 300)
+  ggsave(filename = paste0(file_base, ".png"), plot = plot,  path = path_images, width = 8, height = 5,dpi = 300)
   #ggsave(filename = paste0(file_base, ".pdf"), plot = plot, path = path_images, width = 9, height = 6, dpi = 300, device = cairo_pdf)
   #dev.off()
   
   # Optionally save stats tables
   if (savestats == "YES") {
-    outliers <- outliers %>%  mutate(wks_diet = factor(wks_diet), table = "Outliers")
+    outliers <- outliers %>%  dplyr::mutate(wks_diet = factor(wks_diet), table = "Outliers")
     anova_table <- anova(model, type = 3) %>% as.data.frame() %>% tibble::rownames_to_column(var = "Term")    
-    pwc_df <- pwc_df %>%mutate(wks_diet = factor(wks_diet),table = "Pairwise Comparison")
+    pwc_df <- pwc_df %>%dplyr::mutate(wks_diet = factor(wks_diet),table = "Pairwise Comparison")
     StatsOutput <- bind_rows(outliers,anova_table,pwc_df)%>% relocate( table)
     write.csv2( StatsOutput,
                 file = file.path(paste0(path_images), paste0(file_base, "_StatsOutput.csv")),
                 row.names = FALSE,  na = "",  fileEncoding = "UTF-8"  )
+    openxlsx::write.xlsx( StatsOutput,  file = file.path(path_images, paste0(file_base, "_StatsOutput.xlsx")),  overwrite = TRUE)
+    pdf(file.path(path_images, paste0(file_base, "_StatsOutput.pdf")),  width = 12,   height = 8)
+    gridExtra::grid.table(StatsOutput)
+    dev.off()
   }
   
   #--- Return output ---
@@ -222,11 +286,11 @@ do_weight_curve <- function(inputdata, value, value_label = NULL, unit = "g",
 path_for_saving_images<-file.path(PATHS$general_data[[paste0(ExpId,"_output")]],"02_GeneratedData/Weight_Organs")
 
 ## Relative Weight as summary from Batch 1 and 2 together --------------------------------------------------------
-do_weight_curve(data, value=rel.weight, value_label = "rel.BW",
-                unit = "perc", batch="ALL", sex="male", N=0,path_for_saving_images,savestats="YES")
+do_weight_curve(data, value=rel.weight, value_label = "rel.BW", unit = "perc", batch="ALL", sex="male", N=0,path_for_saving_images,savestats="YES")
 do_weight_curve(data, value=rel.weight, value_label = "rel.BW",unit = "perc", batch="ALL", sex="female",N=0,path_for_saving_images,savestats="YES")
 do_weight_curve(data, value=Weight,value_label = "Body Weight", unit = "g", batch="ALL", sex="female",N=0,path_for_saving_images,savestats="YES")
 do_weight_curve(data, value=Weight,value_label = "Body Weight", unit = "g", batch="ALL", sex="male",N=0,path_for_saving_images,savestats="YES")
+do_weight_curve(data, value=rel.weight, value_label = "rel.BW",unit = "perc", batch="ALL", sex="both",N=0,path_for_saving_images,savestats="YES")
 
 gc()
 
@@ -239,8 +303,9 @@ do_weight_curve(data, value=Weight,value_label = "Body Weight", unit = "g", batc
 
 
 ## Relative Body Weight Single Batches  --------------------------------------------------------
-do_weight_curve(data, value=rel.weight, value_label = "rel. BW",unit = "perc", batch="1", sex="male",N=0,path_for_saving_images)
-do_weight_curve(data, value=rel.weight, value_label = "rel. BW",unit = "perc", batch="1", sex="female",N=0,path_for_saving_images)
-do_weight_curve(data, value=rel.weight, value_label = "rel. BW",unit = "perc", batch="2", sex="female",N=0,path_for_saving_images)
-do_weight_curve(data, value=rel.weight, value_label = "rel. BW",unit = "perc", batch="2", sex="male",N=0,path_for_saving_images)
+do_weight_curve(data, value=rel.weight, value_label = "rel. body weight",unit = "perc", batch="1", sex="male",N=0,path_for_saving_images)
+do_weight_curve(data, value=rel.weight, value_label = "rel. body weight",unit = "perc", batch="1", sex="female",N=0,path_for_saving_images)
+do_weight_curve(data, value=rel.weight, value_label = "rel. body weight",unit = "perc", batch="2", sex="female",N=0,path_for_saving_images)
+do_weight_curve(data, value=rel.weight, value_label = "rel. body weight",unit = "perc", batch="2", sex="male",N=0,path_for_saving_images)
 gc()
+
